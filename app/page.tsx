@@ -24,47 +24,52 @@ export default function Home() {
   return (
     <div className="">
       
-      <div className="m-4">
-        <StatBox value={10} />
-        <StatBox value={10} />
-        <StatBox value={10} />
-        <StatBox value={10} />
-        <StatBox value={10} />
-        <StatBox value={10} />
+      <div className="m-4 mt-8 bg-slate-400 border-2 border-emerald-900 rounded-lg w-1/4 p-4 flex items-center">
+        <div className="ml-2 flex items-center">
+          <StatBox value={10} heading="STR" />
+          <StatBox value={10} heading="DEX" />
+          <StatBox value={10} heading="CON" />
+          <StatBox value={10} heading="INT" />
+          <StatBox value={10} heading="WIS" />
+          <StatBox value={10} heading="CHA" />
+        </div>
       </div>
+
       <br/><br/>
 
-     
-
-      
       <div className="mx-4 my-10">
-        <h1 className="text-green-500 text-4xl font-bold">
-          Inventory
-        </h1>
+        
+        <div className="bg-slate-400 border-2 border-emerald-900 rounded-lg w-1/4 p-4">
+          <h1 className="text-emerald-900 text-4xl font-bold mb-4 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,1)] pl-2">
+            Inventory
+          </h1>
 
-        <Input addItem={addItem}></Input>
+          <Input addItem={addItem}></Input>
 
-        <DndContext 
-          collisionDetection={closestCenter} 
-          onDragEnd={handleDragEnd} 
-          //onDragStart={handleDragStart}
-          modifiers={[restrictToParentElement]}>
-          
-          <ul>
-            <SortableContext
-              items={items}
-              strategy={verticalListSortingStrategy}>
-              {items.map(item => <SortableItem key={item.id} data={item} />)}
-            </SortableContext>
+          <DndContext 
+            collisionDetection={closestCenter} 
+            onDragEnd={handleDragEnd} 
+            //onDragStart={handleDragStart}
+            modifiers={[restrictToParentElement]}>
+            
+            <ul>
+              <SortableContext
+                items={items}
+                strategy={verticalListSortingStrategy}>
+                {items.map(item => <SortableItem key={item.id} data={item} />)}
+              </SortableContext>
 
-          </ul>
-          
+            </ul>
+            
 
-          {/* <DragOverlay>
-            {activeId != null ? <Item id={activeId}> {items[activeId]} </Item>: null}
-          </DragOverlay> */}
-          
-        </DndContext>
+            {/* <DragOverlay>
+              {activeId != null ? <Item id={activeId}> {items[activeId]} </Item>: null}
+            </DragOverlay> */}
+            
+          </DndContext>
+
+        </div>
+        
         
       </div>
       

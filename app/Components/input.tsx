@@ -14,9 +14,9 @@ export function Input({addItem}: InputProps) {
     }
 
     return (
-        <div className="flex items-center space-x-2">
-            <input type="text" value={itemName} onChange={(e) => setItemName(e.target.value)}/>
-            <button onClick={handleAddItem}>Add</button>
+        <div className="flex justify-center space-x-2 mb-2 rounded-lg  bg-slate-100 w-full py-2">
+            <input className="rounded-lg border-2 border-emerald-900 w-1/2" type="text" value={itemName} onChange={(e) => setItemName(e.target.value)}/>
+            <button className="border-2 border-emerald-900 bg-green-50 px-2 rounded-lg w-1/8" onClick={handleAddItem}>Add</button>
         </div>
     )
 }
