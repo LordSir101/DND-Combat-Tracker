@@ -22,8 +22,9 @@ export default function Home() {
   }
 
   return (
-    <div>
-      <div>
+    <div className="">
+      
+      <div className="m-4">
         <StatBox value={10} />
         <StatBox value={10} />
         <StatBox value={10} />
@@ -33,25 +34,38 @@ export default function Home() {
       </div>
       <br/><br/>
 
-      <Input addItem={addItem}></Input>
-      <div>
+     
+
+      
+      <div className="mx-4 my-10">
+        <h1 className="text-green-500 text-4xl font-bold">
+          Inventory
+        </h1>
+
+        <Input addItem={addItem}></Input>
+
         <DndContext 
           collisionDetection={closestCenter} 
           onDragEnd={handleDragEnd} 
           //onDragStart={handleDragStart}
           modifiers={[restrictToParentElement]}>
-            
-          <SortableContext
-            items={items}
-            strategy={verticalListSortingStrategy}>
-            {items.map(item => <SortableItem key={item.id} data={item} />)}
-          </SortableContext>
+          
+          <ul>
+            <SortableContext
+              items={items}
+              strategy={verticalListSortingStrategy}>
+              {items.map(item => <SortableItem key={item.id} data={item} />)}
+            </SortableContext>
+
+          </ul>
+          
 
           {/* <DragOverlay>
             {activeId != null ? <Item id={activeId}> {items[activeId]} </Item>: null}
           </DragOverlay> */}
           
         </DndContext>
+        
       </div>
       
     </div>

@@ -14,7 +14,7 @@ export function Input({addItem}: InputProps) {
     }
 
     return (
-        <div>
+        <div className="flex items-center space-x-2">
             <input type="text" value={itemName} onChange={(e) => setItemName(e.target.value)}/>
             <button onClick={handleAddItem}>Add</button>
         </div>

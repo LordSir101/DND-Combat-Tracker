@@ -20,9 +20,9 @@ const style = {
     transition,
 };
 return (
-    <li ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <li className="" ref={setNodeRef} style={style} {...attributes} {...listeners}>
         {props.data.name}
-        <input defaultValue="1" type="number" name="points" step="1" max="20" min="0" />
+        <input  className="z-50 mx-4 border-2 border-black" defaultValue="1" type="number" step="1" />
     </li>
 )
 

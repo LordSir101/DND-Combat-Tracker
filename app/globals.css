@@ -34,3 +34,7 @@ body {
   text-align: center;
   width: 50px;
 }
+
+ul {
+  list-style-type: none;
+}
