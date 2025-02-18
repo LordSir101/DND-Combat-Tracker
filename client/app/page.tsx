@@ -11,16 +11,13 @@ import {StatBox} from "./Components/statBox";
 import { Input } from "./Components/input";
 import { InventoryItem, PartyMember } from "./types";
 import { io } from "socket.io-client";
-import { Socket } from "node:dgram";
 
 const socket = io('http://localhost:3001')
 
 export default function Home() {
-  //const [activeId, setActiveId] = useState(null);
-  // const [items, setItems] = useState(["Sword", "bow", "Bag"]);
-  // const [ids, setIds] = useState([0, 1, 2]);
   const [items, setItems] = useState<InventoryItem[]>([])
   const [partyMembers, setPartyMembers] = useState<PartyMember[]>([])
+  const [partyJoinError, setPartyJoinError] = useState<string | null>(null)
 
   const [hp, setHp] = useState(10)
   const [lvl, setLvl] = useState(1)
@@ -33,9 +30,9 @@ export default function Home() {
     setItems([...items, {id, name}])
   }
 
-  const addPartyMember = (name: string, hp: number) => {
-    let id = (partyMembers.length + 1).toString()
-    setPartyMembers([...partyMembers, {id, name, hp}])
+  const addPartyMember = (data: PartyMember) => {
+    data.id = (partyMembers.length + 1).toString()
+    setPartyMembers([...partyMembers, data])
   }
 
   function handleNameChange(e:any) {
@@ -43,49 +40,37 @@ export default function Home() {
   }
 
   function createParty() {
-    console.log('create pressed')
     socket.emit('create-party', showParty)
   }
 
+  function joinParty(id: string) {
+    socket.emit('join-party', id, name, hp, showParty)
+  }
+
   function showParty(idOfParty: number) {
-    setPartyId(idOfParty)
-    setInparty(true)
+    if(idOfParty) {
+      setPartyId(idOfParty)
+      setInparty(true)
+      setPartyJoinError(null)
+    }
+    else {
+      setPartyJoinError('The party ID does not exist')
+    }
   }
-
-  function joinParty() {
-    socket.emit('join-party', name, hp, addSelfToParty)
-  }
-
-  function addSelfToParty(idOfParty: number, data: PartyMember) {
-    showParty(idOfParty)
-    //addPlayerToParty(data)
-  }
-
-  function addPlayerToParty( data: PartyMember) {
-    addPartyMember(data.name, data.hp)
-  }
-  // socket.on('add-player-to-party', (data) => {
-  //   console.log("added")
-  //   addPlayerToParty(data)
-  // })
 
   useEffect(() => {
     socket.on('add-player-to-party', (data) => {
-      console.log("added")
-      addPlayerToParty(data)
+      addPartyMember(data)
     })
 
     socket.on('recive-party-data', (partyData) => {
-      console.log("data recived on client")
-      console.log(partyData)
       let temp = []
+
       for (let key in partyData) {
-        console.log(partyData[key])
-        let id = (temp.length + 1).toString()
-        partyData[key].id = id
+        partyData[key].id = (temp.length + 1).toString()
         temp.push(partyData[key])
-        //addPlayerToParty(partyData[key])
       }
+
       setPartyMembers(temp)
     })
 
@@ -105,10 +90,10 @@ export default function Home() {
     <div className="flex items-start">
       
       <div className="w-2/3">
-        <div className="m-4 mt-8 bg-slate-400 border-2 border-emerald-900 rounded-lg w-1/2 p-4 flex items-center justify-evenly">
+        <div className="borderBox m-4 mt-8 w-1/2 flex items-center justify-evenly">
           <div className="ml-2 flex items-center">
-            <p>Name: </p>
-            <input placeholder={name} type="text" onChange={handleNameChange}></input>
+            <h1>Name: </h1>
+            <input className="mx-2" placeholder={name} type="text" onChange={handleNameChange}></input>
           </div>
           <div className="ml-2 flex items-center">
             <StatBox value={lvl} heading="LVL" updateValue={setLvl}/>
@@ -118,30 +103,30 @@ export default function Home() {
 
         <br/>
 
-        <div className="m-4 mt-8 bg-slate-400 border-2 border-emerald-900 rounded-lg w-1/2 p-4 flex items-center justify-evenly">
+        <div className="borderBox w-1/2 m-4 mt-8 flex items-center justify-evenly">
             <StatBox value={10} heading="STR" />
             <StatBox value={10} heading="DEX" />
             <StatBox value={10} heading="CON" />
             <StatBox value={10} heading="INT" />
             <StatBox value={10} heading="WIS" />
             <StatBox value={10} heading="CHA" />
-          
-          {/* <div className="ml-2 flex items-center">
-            
-          </div> */}
         </div>
 
         <br/><br/>
 
-        <div className="mx-4 my-10 bg-slate-400 border-2 border-emerald-900 rounded-lg w-1/2 p-4">
+        <div className="borderBox mx-4 my-10 w-1/2 ">
           <div className="flex justify-center">
-            <h1 className="text-emerald-900 text-4xl font-bold mb-4 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,1)] pl-2">
+            <h1>
               Inventory
             </h1>
           </div>
-         
-
-          <Input addItem={addItem}></Input>
+          <div className="flex justify-center space-x-2 mb-2 rounded-lg  bg-slate-100 w-full py-2">
+            <div className="w-1/2">
+              <Input onSubmit={addItem} buttonText="add"></Input>
+            </div>
+            
+          </div>
+          
 
           <DndContext 
             collisionDetection={closestCenter} 
@@ -158,46 +143,60 @@ export default function Home() {
 
             </ul>
             
-            
-            
-
-            {/* <DragOverlay>
-              {activeId != null ? <Item id={activeId}> {items[activeId]} </Item>: null}
-            </DragOverlay> */}
-            
           </DndContext>
 
         </div>
 
-        {/* <div className="mx-4 my-10">
-          
-         
-          
-        </div> */}
-
         <br/> <br/>
-        <button className=" rounded-lg  bg-slate-100 w-20 mb-2" onClick={createParty}> 
-          <p className="mx-4">Create Party</p>
-        </button>
-        <button className=" rounded-lg  bg-slate-100 w-20 mb-2" onClick={joinParty}> 
-          <p className="mx-4">Join Party</p>
-        </button>
-        <button className=" rounded-lg  bg-slate-100 w-20 mb-2" onClick={debugValue}> 
+        <div className="flex items-center mx-4 w-1/2 justify-evenly">
+
+          <button className="submitButton " onClick={createParty} disabled={inParty}> 
+            <p className="mx-4">Create Party</p>
+          </button>
+
+          <div className="w-1/2">
+            <Input onSubmit={joinParty} buttonText="Join Party" disabled={inParty} inputClass="w-1/2 mx-2" buttonClass="w-1/3"></Input>
+          </div>
+
+          <p className="text-white text-center">
+            {
+              partyJoinError ? partyJoinError : ''
+            }
+          </p>
+
+        </div>
+        <div className="mx-4 w-1/2 items-center">
+          
+        </div>
+        
+        <br/> <br/>
+
+        <button className="submitButton" onClick={debugValue}> 
           <p className="mx-4">DEBUG</p>
         </button>
 
       </div>
       
       <div className="w-1/3">
-        {
-          inParty?
-
-          <div className="m-4 mt-8 bg-slate-400 border-2 border-emerald-900 rounded-lg w-6/7 p-4 ">
+          <div className="borderBox m-4 mt-8 w-6/7">
             
             <div className="flex justify-center">
-              <h1 className="text-emerald-900 text-4xl font-bold mb-4 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,1)] pl-2">
+              <h1>
                 Party Info
               </h1>
+            </div>
+
+            <div className="flex justify-center">
+              {
+                partyId ? 
+                  <h2>
+                    Party ID: {partyId}
+                  </h2>
+                :
+                  <h2>
+                    Party not joined
+                  </h2>
+              }
             </div>
 
             <DndContext 
@@ -213,34 +212,16 @@ export default function Home() {
                   {partyMembers.map(member => <PartyMemberInfo key={member.id} data={member} />)}
                 </SortableContext>
 
-              </ul>
-            
-
-            {/* <DragOverlay>
-              {activeId != null ? <Item id={activeId}> {items[activeId]} </Item>: null}
-            </DragOverlay> */}
-            
+              </ul>            
           </DndContext>
-          </div>
-        :
 
-        <div></div>
-        }
+          </div>
       </div>
-      
-      
-      
+
     </div>
-    
    
   );
   
-  // function handleDragStart(event: { active: any;}) {
-  //   const {active} = event;
-    
-  //   setActiveId(active.id);
-  // }
-
   function handleDragEnd(event: { active: any; over: any; }) {
     const {active, over} = event;
     

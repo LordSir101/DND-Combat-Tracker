@@ -6,6 +6,7 @@ const app = express()
 const server = http.createServer(app)
 
 import { Server } from 'socket.io'
+import { generateId } from "./generateId.ts";
 
 const io = new Server(server, {
   cors: {
@@ -15,27 +16,30 @@ const io = new Server(server, {
 
 import { Party } from './party.ts'
 
-let parties: Party[] = []
+const parties: Map<string, Party> = new Map()
 
 io.on('connection', (socket) => {
+
   socket.on('create-party', (callback) => {
-    let id: number = 0
-    parties.push(new Party(socket, id))
+    let id =  generateId()
+    parties.set(id, new Party(socket, id))
 
     callback(id)
-    console.log('Party Created')
   })
 
-  socket.on('join-party', (name, hp, callback) => {
-    parties[0].sendPlayerDataToParty({name, hp})
-    parties[0].addPlayerToParty({name, hp}, socket)
-    
-    let id: number = 0
-    callback(id, {name, hp})
+  socket.on('join-party', (id, name, hp, callback) => {
+    const party = parties.get(id)
+
+    if(party) {
+      party.sendPlayerDataToParty({name, hp})
+      party.addPlayerToParty({name, hp}, socket)
+      callback(id, {name, hp})
+    }
+    else {
+      callback(undefined, {name, hp})
+    }
   })
 })
-
-  
 
 server.listen(3001, 'localhost', () => {
   console.log('✔️ Server listening on port 3001')
