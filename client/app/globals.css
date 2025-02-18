@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  /* color: var(--foreground); */
+  background-color: #424F63;
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.statBox {
+  background: #fff;
+  border: 1px solid #999;
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 34px;
+  height: 34px;
+  padding: 0;
+  text-align: center;
+  width: 50px;
+}
+
+
+ul {
+  list-style-type: none;
+}
