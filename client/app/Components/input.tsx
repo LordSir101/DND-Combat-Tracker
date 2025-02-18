@@ -1,21 +1,25 @@
 import { useState } from "react";
 
 interface InputProps {
-    addItem: (title: string) => void;
+    onSubmit: (title: string) => void;
+    buttonText: string;
+    disabled?: boolean;
+    inputClass?: string;
+    buttonClass?: string;
 }
 
-export function Input({addItem}: InputProps) {
-    const [itemName, setItemName] = useState('');
+export function Input({onSubmit, buttonText, disabled, inputClass, buttonClass}: InputProps) {
+    const [inputValue, setInputValue] = useState('');
 
-    function handleAddItem(event: any) {
-        addItem(itemName)
-        setItemName('')
+    function handleSubmit(event: any) {
+        onSubmit(inputValue)
+        setInputValue('')
     }
 
     return (
-        <div className="flex justify-center space-x-2 mb-2 rounded-lg  bg-slate-100 w-full py-2">
-            <input className="rounded-lg border-2 border-emerald-900 w-1/2" type="text" value={itemName} onChange={(e) => setItemName(e.target.value)}/>
-            <button className="border-2 border-emerald-900 bg-green-50 px-2 rounded-lg w-1/8" onClick={handleAddItem}>Add</button>
+        <div className="w-full flex">
+            <input className={inputClass ? inputClass : "w-5/6 mx-2"} type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)}/>
+            <button className={"submitButton " + (buttonClass ? buttonClass : "w-1/6")} onClick={handleSubmit} disabled={disabled}>{buttonText}</button>
         </div>
     )
 }

@@ -21,6 +21,23 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+ul {
+  list-style-type: none;
+}
+
+h1 {
+  @apply text-emerald-900 text-4xl font-bold mb-4 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,1)];
+}
+
+input {
+  @apply rounded-lg border-2 border-emerald-900;
+}
+
+.submitButton {
+  @apply border-2 border-emerald-900 bg-green-50 px-2 rounded-lg text-center disabled:bg-gray-300;
+}
+
+
 .statBox {
   background: #fff;
   border: 1px solid #999;
@@ -33,7 +50,6 @@ body {
   width: 50px;
 }
 
-
-ul {
-  list-style-type: none;
+.borderBox {
+  @apply bg-slate-400 border-2 border-emerald-900 rounded-lg p-4;
 }
