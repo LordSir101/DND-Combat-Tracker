@@ -6,17 +6,32 @@ const app = express()
 const server = http.createServer(app)
 
 import { Server } from 'socket.io'
+
 const io = new Server(server, {
   cors: {
     origin: '*',
   },
 })
 
+import { Party } from './party.ts'
 
+let parties: Party[] = []
 
 io.on('connection', (socket) => {
-  socket.on('start', () => {
-    console.log('button clicked')
+  socket.on('create-party', (callback) => {
+    let id: number = 0
+    parties.push(new Party(socket, id))
+
+    callback(id)
+    console.log('Party Created')
+  })
+
+  socket.on('join-party', (name, hp, callback) => {
+    parties[0].sendPlayerDataToParty({name, hp})
+    parties[0].addPlayerToParty({name, hp}, socket)
+    
+    let id: number = 0
+    callback(id, {name, hp})
   })
 })
 
