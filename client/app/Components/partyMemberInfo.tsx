@@ -1,16 +1,16 @@
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
-import { InventoryItem } from '../types';
+import { PartyMember } from '../types';
 import { useState } from 'react';
 
-type SortableItemProps = {
-    data: InventoryItem
+type partyMemberInfoProps = {
+    data: PartyMember
 }
 
-export function SortableItem(props: SortableItemProps) {
+export function PartyMemberInfo(props: partyMemberInfoProps) {
     const {
-        attributes,
-        listeners,
+        // attributes,
+        // listeners,
         setNodeRef,
         transform,
         transition,
@@ -29,16 +29,12 @@ export function SortableItem(props: SortableItemProps) {
         setIsClicked(!isClicked)
     }
 
-    function handleDescriptionChange(text:string)
-    {
-        props.data.description = text
-    }
 
     return (
         <li className="my-0" ref={setNodeRef} style={style}>
             <div className="rounded-lg  bg-slate-100 w-full mb-2">
                 <div className='flex items-center'>
-                    <svg
+                    {/* <svg
                         {...listeners}
                         {...attributes}
                         xmlns="http://www.w3.org/2000/svg"
@@ -53,25 +49,12 @@ export function SortableItem(props: SortableItemProps) {
                             strokeWidth="2"
                             d="M4 6h16M4 12h16M4 18h16"
                         />
-                    </svg>
+                    </svg> */}
                     <button className=" rounded-lg  bg-slate-100 w-4/5 mb-2" onClick={handleClick}>
-                        
-                            <p className="mx-4">{props.data.name}</p>
+                            <p className="mx-4">{props.data.name} HP: {props.data.hp}</p>
                     </button>
-                    <div className='flex justify-end w-1/6'>
-                        <input  className="z-50 pl-1 mx-4 border-2 border-black rounded-lg w-full " defaultValue="1" type="number" step="1" max="9999"/>
-                    </div>
+                   
                 </div>
-                {
-                    isClicked?
-                    <div className='ml-6 mr-4 my-2'>
-                        <input type="text" defaultValue={props.data.description} className="border-black rounded-lg w-full p-2" onChange={(e) => handleDescriptionChange(e.target.value)}/>
-                    </div>
-
-                    :
-
-                    <div></div>
-                }
            
             </div>
            

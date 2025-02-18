@@ -3,3 +3,9 @@ export interface InventoryItem  {
     name: string;
     description?: string;
 }
+
+export interface PartyMember {
+    id: string;
+    name: string;
+    hp: number;
+}
