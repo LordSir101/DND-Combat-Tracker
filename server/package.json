@@ -1,0 +1,23 @@
+{
+    "name": "server",
+    "version": "1.0.0",
+    "description": "",
+    "main": "server.js",
+    "scripts": {
+        "server": "npx tsx server.ts"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "module",
+    "dependencies": {
+        "express": "^4.21.2",
+        "nodemon": "^3.1.9",
+        "socket.io": "^4.8.1",
+        "ts-node": "^10.9.2"
+    },
+    "devDependencies": {
+        "@types/node": "^18.11.9",
+        "tsx": "^4.19.2"
+    }
+}
