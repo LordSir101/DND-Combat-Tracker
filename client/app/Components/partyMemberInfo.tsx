@@ -29,7 +29,6 @@ export function PartyMemberInfo(props: partyMemberInfoProps) {
         setIsClicked(!isClicked)
     }
 
-
     return (
         <li className="my-0" ref={setNodeRef} style={style}>
             <div className="rounded-lg  bg-slate-100 w-full mb-2">
@@ -63,8 +62,4 @@ export function PartyMemberInfo(props: partyMemberInfoProps) {
         </li>
     )
 
-}
-
-function SetState(arg0: boolean): [any, any] {
-    throw new Error('Function not implemented.');
 }

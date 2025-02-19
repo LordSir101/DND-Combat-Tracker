@@ -27,16 +27,18 @@ io.on('connection', (socket) => {
     callback(id)
   })
 
-  socket.on('join-party', (id, name, hp, callback) => {
+  socket.on('join-party', (id, data, callback) => {
     const party = parties.get(id)
 
     if(party) {
-      party.sendPlayerDataToParty({name, hp})
-      party.addPlayerToParty({name, hp}, socket)
-      callback(id, {name, hp})
+      //let id = (Object.keys(this.partyInfo).length + 1).toString()
+      data.id = socket.id
+      party.sendPlayerDataToParty(data)
+      party.addPlayerToParty(data, socket)
+      callback(id, data)
     }
     else {
-      callback(undefined, {name, hp})
+      callback(undefined, data)
     }
   })
 })

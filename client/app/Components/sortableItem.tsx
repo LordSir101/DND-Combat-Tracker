@@ -63,7 +63,7 @@ export function SortableItem(props: SortableItemProps) {
                     </div>
                 </div>
                 {
-                    isClicked?
+                    isClicked ?
                     <div className='ml-6 mr-4 my-2'>
                         <input type="text" defaultValue={props.data.description} className="border-black rounded-lg w-full p-2" onChange={(e) => handleDescriptionChange(e.target.value)}/>
                     </div>
@@ -82,6 +82,3 @@ export function SortableItem(props: SortableItemProps) {
 
 }
 
-function SetState(arg0: boolean): [any, any] {
-    throw new Error('Function not implemented.');
-}
