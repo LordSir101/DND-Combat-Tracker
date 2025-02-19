@@ -25,14 +25,25 @@ export default function Home() {
   const [inParty, setInparty] = useState(false)
   const [partyId, setPartyId] = useState<number | undefined> (undefined)
 
+  let playerData = {
+    name,
+    hp
+  }
+
   const addItem = (name: string) => {
     let id = (items.length + 1).toString()
     setItems([...items, {id, name}])
   }
 
   const addPartyMember = (data: PartyMember) => {
-    data.id = (partyMembers.length + 1).toString()
     setPartyMembers([...partyMembers, data])
+  }
+
+  const updateMemberData = (memberData: PartyMember) => {
+    let indexOfMember = getMemberPos(partyMembers, memberData.id)
+    let newMemberData = partyMembers
+    newMemberData[indexOfMember] = memberData
+    setPartyMembers([...newMemberData])
   }
 
   function handleNameChange(e:any) {
@@ -43,8 +54,8 @@ export default function Home() {
     socket.emit('create-party', showParty)
   }
 
-  function joinParty(id: string) {
-    socket.emit('join-party', id, name, hp, showParty)
+  function joinParty(idOfParty: string) {
+    socket.emit('join-party',idOfParty, playerData, showParty)
   }
 
   function showParty(idOfParty: number) {
@@ -67,16 +78,20 @@ export default function Home() {
       let temp = []
 
       for (let key in partyData) {
-        partyData[key].id = (temp.length + 1).toString()
         temp.push(partyData[key])
       }
 
       setPartyMembers(temp)
     })
 
+    socket.on('update-party-member-data', (memberData) => {
+      updateMemberData(memberData)
+    })
+
     return () => {
       socket.off('add-player-to-party')
       socket.off('recive-party-data')
+      socket.off('update-party-member-data')
     }
   }, [partyMembers])
 
@@ -84,6 +99,12 @@ export default function Home() {
   function debugValue() {
     console.log(name)
   }
+
+  // send player data to party whenever any of the relevant stats change
+  useEffect(() => {
+    socket.emit("update-player-data", playerData)
+
+  }, [hp, name])
   
 
   return (
@@ -127,7 +148,6 @@ export default function Home() {
             
           </div>
           
-
           <DndContext 
             collisionDetection={closestCenter} 
             onDragEnd={handleDragEnd} 
@@ -242,6 +262,10 @@ export default function Home() {
 }
 
 const getItemPos = (items: InventoryItem[], id: string) => {
+  return items.findIndex((item) => item.id === id);
+}
+
+const getMemberPos = (items: PartyMember[], id: string) => {
   return items.findIndex((item) => item.id === id);
 }
   
