@@ -11,6 +11,7 @@ import {StatBox} from "./Components/statBox";
 import { Input } from "./Components/input";
 import { InventoryItem, PartyMember } from "./types";
 import { io } from "socket.io-client";
+import { EventEmitterBtn } from "./Components/rollInitiativeBtn";
 
 const socket = io('http://localhost:3001')
 
@@ -21,13 +22,16 @@ export default function Home() {
 
   const [hp, setHp] = useState(10)
   const [lvl, setLvl] = useState(1)
+  const [init, setInit] = useState(0)
   const [name, setName] = useState('Player')
   const [inParty, setInparty] = useState(false)
+  const [isHost, setIsHost] = useState(false)
   const [partyId, setPartyId] = useState<number | undefined> (undefined)
 
   let playerData = {
     name,
-    hp
+    hp,
+    init
   }
 
   const addItem = (name: string) => {
@@ -52,10 +56,12 @@ export default function Home() {
 
   function createParty() {
     socket.emit('create-party', showParty)
+    setIsHost(true)
   }
 
   function joinParty(idOfParty: string) {
     socket.emit('join-party',idOfParty, playerData, showParty)
+    setIsHost(false)
   }
 
   function showParty(idOfParty: number) {
@@ -88,10 +94,16 @@ export default function Home() {
       updateMemberData(memberData)
     })
 
+    socket.on('update-party-order', (memberDataArr) => {
+      console.log(memberDataArr)
+      setPartyMembers([...memberDataArr])
+    })
+
     return () => {
       socket.off('add-player-to-party')
       socket.off('recive-party-data')
       socket.off('update-party-member-data')
+      socket.off('update-party-order')
     }
   }, [partyMembers])
 
@@ -104,7 +116,7 @@ export default function Home() {
   useEffect(() => {
     socket.emit("update-player-data", playerData)
 
-  }, [hp, name])
+  }, [hp, name, init])
   
 
   return (
@@ -119,6 +131,7 @@ export default function Home() {
           <div className="ml-2 flex items-center">
             <StatBox value={lvl} heading="LVL" updateValue={setLvl}/>
             <StatBox value={hp} heading="HP" updateValue={setHp}/>
+            <StatBox value={init} heading="INIT" updateValue={setInit}/>
           </div>
         </div>
 
@@ -198,44 +211,50 @@ export default function Home() {
       </div>
       
       <div className="w-1/3">
-          <div className="borderBox m-4 mt-8 w-6/7">
-            
-            <div className="flex justify-center">
-              <h1>
-                Party Info
-              </h1>
-            </div>
-
-            <div className="flex justify-center">
-              {
-                partyId ? 
-                  <h2>
-                    Party ID: {partyId}
-                  </h2>
-                :
-                  <h2>
-                    Party not joined
-                  </h2>
-              }
-            </div>
-
-            <DndContext 
-              collisionDetection={closestCenter} 
-              // onDragEnd={handleDragEndParty} 
-              //onDragStart={handleDragStart}
-              modifiers={[restrictToParentElement]}>
-              
-              <ul>
-                <SortableContext
-                  items={partyMembers}
-                  strategy={verticalListSortingStrategy}>
-                  {partyMembers.map(member => <PartyMemberInfo key={member.id} data={member} />)}
-                </SortableContext>
-
-              </ul>            
-          </DndContext>
-
+        <div className="borderBox m-4 mt-8 w-6/7">
+          
+          <div className="flex justify-center">
+            <h1>
+              Party Info
+            </h1>
           </div>
+
+          <div className="flex justify-center">
+            {
+              partyId ? 
+                <h2>
+                  Party ID: {partyId}
+                </h2>
+              :
+                <h2>
+                  Party not joined
+                </h2>
+            }
+          </div>
+
+          <DndContext 
+            collisionDetection={closestCenter} 
+            // onDragEnd={handleDragEndParty} 
+            //onDragStart={handleDragStart}
+            modifiers={[restrictToParentElement]}>
+            
+            <ul>
+              <SortableContext
+                items={partyMembers}
+                strategy={verticalListSortingStrategy}>
+                {partyMembers.map(member => <PartyMemberInfo key={member.id} data={member} />)}
+              </SortableContext>
+
+            </ul>            
+          </DndContext>
+          {
+            partyId && isHost ? 
+              <EventEmitterBtn socket={socket} emitMessage={"roll-initiative-auto"} btnText={"Roll Initiative (automatic)"}/>
+            :
+              <div></div>
+          }
+
+        </div>
       </div>
 
     </div>
