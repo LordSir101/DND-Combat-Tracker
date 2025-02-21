@@ -8,4 +8,5 @@ export interface PartyMember {
     id: string;
     name: string;
     hp: number;
+    init: number;
 }
