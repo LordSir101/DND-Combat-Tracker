@@ -12,11 +12,13 @@ import { Input } from "./Components/input";
 import { InventoryItem, PartyMember } from "./types";
 import { io } from "socket.io-client";
 import { EventEmitterBtn } from "./Components/rollInitiativeBtn";
+import { StatusBox } from "./Components/statusBox";
 
 const socket = io('http://localhost:3001')
 
 export default function Home() {
   const [items, setItems] = useState<InventoryItem[]>([])
+  const [statuses, setStatuses] = useState<string[]>(["blinded", "grappled", "charmed", "frightened", "invisible"])
   const [partyMembers, setPartyMembers] = useState<PartyMember[]>([])
   const [partyJoinError, setPartyJoinError] = useState<string | null>(null)
 
@@ -31,7 +33,8 @@ export default function Home() {
   let playerData = {
     name,
     hp,
-    init
+    init,
+    statuses
   }
 
   const addItem = (name: string) => {
@@ -40,6 +43,7 @@ export default function Home() {
   }
 
   const addPartyMember = (data: PartyMember) => {
+    console.log(data)
     setPartyMembers([...partyMembers, data])
   }
 
@@ -116,14 +120,14 @@ export default function Home() {
   useEffect(() => {
     socket.emit("update-player-data", playerData)
 
-  }, [hp, name, init])
+  }, [hp, name, init, statuses])
   
 
   return (
     <div className="flex items-start">
       
-      <div className="w-2/3">
-        <div className="borderBox m-4 mt-8 w-1/2 flex items-center justify-evenly">
+      <div className="w-1/3">
+        <div className="borderBox m-4 mt-8 flex items-center justify-evenly">
           <div className="ml-2 flex items-center">
             <h1>Name: </h1>
             <input className="mx-2" placeholder={name} type="text" onChange={handleNameChange}></input>
@@ -137,7 +141,7 @@ export default function Home() {
 
         <br/>
 
-        <div className="borderBox w-1/2 m-4 mt-8 flex items-center justify-evenly">
+        <div className="borderBox  m-4 mt-8 flex items-center justify-evenly">
             <StatBox value={10} heading="STR" />
             <StatBox value={10} heading="DEX" />
             <StatBox value={10} heading="CON" />
@@ -148,7 +152,7 @@ export default function Home() {
 
         <br/><br/>
 
-        <div className="borderBox mx-4 my-10 w-1/2 ">
+        <div className="borderBox mx-4 my-10">
           <div className="flex justify-center">
             <h1>
               Inventory
@@ -181,7 +185,8 @@ export default function Home() {
         </div>
 
         <br/> <br/>
-        <div className="flex items-center mx-4 w-1/2 justify-evenly">
+
+        <div className="flex items-center mx-4 justify-evenly">
 
           <button className="submitButton " onClick={createParty} disabled={inParty}> 
             <p className="mx-4">Create Party</p>
@@ -208,6 +213,18 @@ export default function Home() {
           <p className="mx-4">DEBUG</p>
         </button>
 
+      </div>
+      <div className="borderBox mx-4 mt-8 w-1/3 ">
+        <div className="flex justify-center">
+          <h1>
+            Statuses
+          </h1>
+        </div>
+
+        <div className="grid grid-cols-5">
+            {statuses.map((status, i) => <StatusBox key={i} statusName={status}/>)}
+        </div>
+      
       </div>
       
       <div className="w-1/3">

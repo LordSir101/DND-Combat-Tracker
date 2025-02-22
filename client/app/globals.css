@@ -37,6 +37,10 @@ input {
   @apply border-2 border-emerald-900 bg-green-50 px-2 rounded-lg text-center disabled:bg-gray-300;
 }
 
+.font-outline-1 {
+  -webkit-text-stroke: 1px black;
+}
+
 
 .statBox {
   background: #fff;

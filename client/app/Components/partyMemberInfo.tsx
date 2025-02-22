@@ -2,6 +2,7 @@ import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
 import { PartyMember } from '../types';
 import { useState } from 'react';
+import { StatusBox } from './statusBox';
 
 type partyMemberInfoProps = {
     data: PartyMember
@@ -32,7 +33,7 @@ export function PartyMemberInfo(props: partyMemberInfoProps) {
     return (
         <li className="my-0" ref={setNodeRef} style={style}>
             <div className="rounded-lg  bg-slate-100 w-full mb-2">
-                <div className='flex items-center'>
+                <div className='flex items-center w-full'>
                     {/* <svg
                         {...listeners}
                         {...attributes}
@@ -49,8 +50,12 @@ export function PartyMemberInfo(props: partyMemberInfoProps) {
                             d="M4 6h16M4 12h16M4 18h16"
                         />
                     </svg> */}
-                    <button className=" rounded-lg  bg-slate-100 w-4/5 mb-2" onClick={handleClick}>
-                            <p className="mx-4">{props.data.name} HP: {props.data.hp}</p>
+                    <button className=" rounded-lg  bg-slate-100 mb-2 flex items-start w-full" onClick={handleClick}>
+                        <p className="mx-4 w-1/2">{props.data.name} HP: {props.data.hp}</p>
+                        <div className='grid grid-cols-4 w-full'>
+                            {props.data.statuses.map((status, i) => <StatusBox key={i} scale="scale-75" statusName={status}/>)}
+                        </div>
+                            
                     </button>
                    
                 </div>
