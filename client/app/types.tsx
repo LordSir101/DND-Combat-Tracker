@@ -9,4 +9,5 @@ export interface PartyMember {
     name: string;
     hp: number;
     init: number;
+    statuses: string[];
 }
