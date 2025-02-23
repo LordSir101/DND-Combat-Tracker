@@ -13,12 +13,13 @@ import { InventoryItem, PartyMember } from "./types";
 import { io } from "socket.io-client";
 import { EventEmitterBtn } from "./Components/rollInitiativeBtn";
 import { StatusBox } from "./Components/statusBox";
+import { statusVisuals } from "./statusVisuals";
 
 const socket = io('http://localhost:3001')
 
 export default function Home() {
   const [items, setItems] = useState<InventoryItem[]>([])
-  const [statuses, setStatuses] = useState<string[]>(["blinded", "grappled", "charmed", "frightened", "invisible"])
+  const [statuses, setStatuses] = useState<string[]>([])
   const [partyMembers, setPartyMembers] = useState<PartyMember[]>([])
   const [partyJoinError, setPartyJoinError] = useState<string | null>(null)
 
@@ -26,6 +27,7 @@ export default function Home() {
   const [lvl, setLvl] = useState(1)
   const [init, setInit] = useState(0)
   const [name, setName] = useState('Player')
+  const [showStatusMenu, setShowStatusMenu] = useState(false)
   const [inParty, setInparty] = useState(false)
   const [isHost, setIsHost] = useState(false)
   const [partyId, setPartyId] = useState<number | undefined> (undefined)
@@ -42,6 +44,25 @@ export default function Home() {
     setItems([...items, {id, name}])
   }
 
+  const addStatus = (status: string) => {
+    setStatuses([...statuses, status])
+  }
+
+  const removeStatus = (status: string) => {
+    const index = statuses.indexOf(status)
+    let newStatuses = statuses
+    newStatuses.splice(index, 1)
+    setStatuses([...newStatuses])
+  }
+
+  // const changeName = (name: string) => {
+  //   setName(name)
+  // }
+
+  const toggleStatusMenu = () => {
+    setShowStatusMenu(!showStatusMenu)
+  }
+
   const addPartyMember = (data: PartyMember) => {
     console.log(data)
     setPartyMembers([...partyMembers, data])
@@ -54,9 +75,9 @@ export default function Home() {
     setPartyMembers([...newMemberData])
   }
 
-  function handleNameChange(e:any) {
-    setName(e.target.value)
-  }
+  // function handleNameChange(e:any) {
+  //   setName(e.target.value)
+  // }
 
   function createParty() {
     socket.emit('create-party', showParty)
@@ -128,9 +149,9 @@ export default function Home() {
       
       <div className="w-1/3">
         <div className="borderBox m-4 mt-8 flex items-center justify-evenly">
-          <div className="ml-2 flex items-center">
-            <h1>Name: </h1>
-            <input className="mx-2" placeholder={name} type="text" onChange={handleNameChange}></input>
+          <div className="ml-2 flex-col items-center">
+            <h1 className="text-center ">{name}</h1>
+            <Input onSubmit={setName} buttonClass="w-2/6" buttonText="Change"></Input>
           </div>
           <div className="ml-2 flex items-center">
             <StatBox value={lvl} heading="LVL" updateValue={setLvl}/>
@@ -222,8 +243,37 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-5">
-            {statuses.map((status, i) => <StatusBox key={i} statusName={status}/>)}
+            {statuses.map((status, i) => <StatusBox key={i} statusName={status} removeStatus={removeStatus}/>)}
         </div>
+        <br/> <br/>
+        <button className="submitButton" onClick={toggleStatusMenu}>Add Status</button>
+        {
+            showStatusMenu ?
+
+            <div className='ml-6 mr-4 my-2 grid grid-cols-5'>
+  
+              {/* Check which statuses are not applied, the display those*/}
+
+              {Object.keys(statusVisuals).reduce((unusedStatuses: string[], element:string) => {
+                if(!statuses.includes(element)) {
+                  unusedStatuses.push(element)
+                }
+                return unusedStatuses
+
+              }, []).map((status, i) =>
+
+                <button key={i} onClick={()=>addStatus(status)}>
+                  <StatusBox statusName={status}/>
+                </button>
+              
+                )}
+
+            </div>
+
+            :
+
+            <div></div>
+        }
       
       </div>
       

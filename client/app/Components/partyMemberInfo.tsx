@@ -52,7 +52,7 @@ export function PartyMemberInfo(props: partyMemberInfoProps) {
                     </svg> */}
                     <button className=" rounded-lg  bg-slate-100 mb-2 flex items-start w-full" onClick={handleClick}>
                         <p className="mx-4 w-1/2">{props.data.name} HP: {props.data.hp}</p>
-                        <div className='grid grid-cols-4 w-full'>
+                        <div className='grid grid-cols-5 w-full'>
                             {props.data.statuses.map((status, i) => <StatusBox key={i} scale="scale-75" statusName={status}/>)}
                         </div>
                             

@@ -54,6 +54,29 @@ input {
   width: 50px;
 }
 
+.close {
+  color: #fff;
+  background-color: #DC143C;
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  font-size: 15px;
+  border-radius: 50%;
+  border: 2px solid #333;
+  width: 25px;
+  height: 25px;
+  
+}
+
+.close:hover{
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+  outline: none;
+}
+
+
+
 .borderBox {
   @apply bg-slate-400 border-2 border-emerald-900 rounded-lg p-4;
 }
