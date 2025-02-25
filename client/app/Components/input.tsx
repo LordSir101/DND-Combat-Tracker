@@ -18,7 +18,7 @@ export function Input({onSubmit, buttonText, disabled, inputClass, buttonClass}:
 
     return (
         <div className="w-full flex">
-            <input className={inputClass ? inputClass : "w-5/6 mx-2"} type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)}/>
+            <input className={(inputClass ? inputClass : "w-5/6 mx-2") + " textInput"} type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)}/>
             <button className={"submitButton " + (buttonClass ? buttonClass : "w-1/6")} onClick={handleSubmit} disabled={disabled}>{buttonText}</button>
         </div>
     )

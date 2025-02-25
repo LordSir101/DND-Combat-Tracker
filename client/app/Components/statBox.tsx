@@ -17,11 +17,11 @@ export function StatBox(props: StatBoxProps) {
   }
 
   return (
-    <div className="flex flex-col items-center mx-3">
-      <h1>
+    <div className="flex flex-col items-center mx-3 ">
+      <h2 className="text-gray-800  text-lg font-bold">
         {props.heading}
-      </h1>
-      <input onChange={handleChange} className="statBox justify-center" defaultValue={props.value} type="number" name="points" step="1" max="20" min="0" />
+      </h2>
+      <input onChange={handleChange} className="subBox statBox justify-center" defaultValue={props.value} type="number" name="points" step="1" max="20" min="0" />
     </div>
     
   )

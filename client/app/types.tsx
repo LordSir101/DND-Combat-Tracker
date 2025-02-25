@@ -4,6 +4,12 @@ export interface InventoryItem  {
     description?: string;
 }
 
+export interface Status {
+    id: string;
+    status: string;
+    option?: string
+}
+
 export interface PartyMember {
     id: string;
     name: string;

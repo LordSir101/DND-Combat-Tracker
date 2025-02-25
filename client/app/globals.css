@@ -26,15 +26,19 @@ ul {
 }
 
 h1 {
-  @apply text-emerald-900 text-4xl font-bold mb-4 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,1)];
+  @apply text-cyan-950 text-4xl font-bold mb-4 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,1)];
 }
 
-input {
-  @apply rounded-lg border-2 border-emerald-900;
+h2 {
+  @apply border-red-700  text-lg font-bold;
+}
+
+.textInput {
+  @apply rounded-lg border-2 border-cyan-950;
 }
 
 .submitButton {
-  @apply border-2 border-emerald-900 bg-green-50 px-2 rounded-lg text-center disabled:bg-gray-300;
+  @apply border-2 border-cyan-950 bg-sky-100 px-2 rounded-lg text-center disabled:bg-gray-300; /*border-emerald-900*/
 }
 
 .font-outline-1 {
@@ -43,15 +47,22 @@ input {
 
 
 .statBox {
-  background: #fff;
-  border: 1px solid #999;
-  font-size: 24px;
+  background: none;
+  
+  font-size: 20px;
   font-weight: bold;
+  color: #ededed;
   line-height: 34px;
   height: 34px;
   padding: 0;
   text-align: center;
   width: 50px;
+
+  @apply border-emerald-900;
+}
+
+.subBox {
+  @apply border-2 border-cyan-950 rounded-lg text-center
 }
 
 .close {
@@ -78,5 +89,5 @@ input {
 
 
 .borderBox {
-  @apply bg-slate-400 border-2 border-emerald-900 rounded-lg p-4;
+   @apply bg-slate-400  rounded-lg p-4; /*border-2 border-emerald-900 */
 }

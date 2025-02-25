@@ -9,17 +9,20 @@ import { SortableItem } from "./Components/sortableItem";
 import { PartyMemberInfo } from "./Components/partyMemberInfo";
 import {StatBox} from "./Components/statBox";
 import { Input } from "./Components/input";
-import { InventoryItem, PartyMember } from "./types";
+import { InventoryItem, PartyMember, Status } from "./types";
 import { io } from "socket.io-client";
 import { EventEmitterBtn } from "./Components/rollInitiativeBtn";
 import { StatusBox } from "./Components/statusBox";
 import { statusVisuals } from "./statusVisuals";
 
+import { v4 as uuidv4 } from 'uuid';
+
 const socket = io('http://localhost:3001')
 
 export default function Home() {
   const [items, setItems] = useState<InventoryItem[]>([])
-  const [statuses, setStatuses] = useState<string[]>([])
+  // const [statuses, setStatuses] = useState<string[]>([])
+  const [statuses, setStatuses] = useState<Status[]>([])
   const [partyMembers, setPartyMembers] = useState<PartyMember[]>([])
   const [partyJoinError, setPartyJoinError] = useState<string | null>(null)
 
@@ -44,20 +47,27 @@ export default function Home() {
     setItems([...items, {id, name}])
   }
 
-  const addStatus = (status: string) => {
-    setStatuses([...statuses, status])
+  const addStatus = (id:string, status: string, option: string) => {
+    setStatuses([...statuses, {id, status, option}])
   }
 
-  const removeStatus = (status: string) => {
-    const index = statuses.indexOf(status)
+  // remove status from applied statuses
+  const removeStatus = (id:string) => {
+    console.log(id)
+    let index = statuses.findIndex((status) => status.id === id);
     let newStatuses = statuses
     newStatuses.splice(index, 1)
     setStatuses([...newStatuses])
   }
 
-  // const changeName = (name: string) => {
-  //   setName(name)
-  // }
+  // update the option selected on statuses with options
+  const changeStatusOption = (id:string, option:string) => {
+    let index = statuses.findIndex((status) => status.id === id);
+    let newStatuses = statuses
+    console.log("chgange", option)
+    newStatuses[index].option = option
+    setStatuses([...newStatuses])
+  }
 
   const toggleStatusMenu = () => {
     setShowStatusMenu(!showStatusMenu)
@@ -75,9 +85,6 @@ export default function Home() {
     setPartyMembers([...newMemberData])
   }
 
-  // function handleNameChange(e:any) {
-  //   setName(e.target.value)
-  // }
 
   function createParty() {
     socket.emit('create-party', showParty)
@@ -148,32 +155,51 @@ export default function Home() {
     <div className="flex items-start">
       
       <div className="w-1/3">
-        <div className="borderBox m-4 mt-8 flex items-center justify-evenly">
-          <div className="ml-2 flex-col items-center">
-            <h1 className="text-center ">{name}</h1>
-            <Input onSubmit={setName} buttonClass="w-2/6" buttonText="Change"></Input>
+        <div className="borderBox flex-col m-4 mt-8">
+          <div className=" flex items-center justify-evenly">
+            <div className="ml-2 flex-col items-center">
+              <h1 className="text-center ">{name}</h1>
+              <Input onSubmit={setName} buttonClass="w-2/6" buttonText="Change"></Input>
+            </div>
+            <div className="ml-2 flex items-center">
+              <StatBox value={lvl} heading="LVL" updateValue={setLvl}/>
+              <StatBox value={hp} heading="HP" updateValue={setHp}/>
+              <StatBox value={init} heading="INIT" updateValue={setInit}/>
+            </div>
           </div>
-          <div className="ml-2 flex items-center">
-            <StatBox value={lvl} heading="LVL" updateValue={setLvl}/>
-            <StatBox value={hp} heading="HP" updateValue={setHp}/>
-            <StatBox value={init} heading="INIT" updateValue={setInit}/>
+
+          <div>
+              <div className=" m-4 mt-8 flex items-center justify-evenly">
+                <StatBox value={10} heading="STR" />
+                <StatBox value={10} heading="DEX" />
+                <StatBox value={10} heading="CON" />
+                <StatBox value={10} heading="INT" />
+                <StatBox value={10} heading="WIS" />
+                <StatBox value={10} heading="CHA" />
+            </div>
           </div>
+
+          <div className="flex items-center mx-4 mt-12 justify-evenly">
+
+            <button className="submitButton " onClick={createParty} disabled={inParty}> 
+              <p className="mx-4">Create Party</p>
+            </button>
+
+            <div className="w-1/2">
+              <Input onSubmit={joinParty} buttonText="Join Party" disabled={inParty} inputClass="w-1/2 mx-2" buttonClass="w-1/3"></Input>
+            </div>
+
+            <p className="text-white text-center">
+              {
+                partyJoinError ? partyJoinError : ''
+              }
+            </p>
+
+          </div>
+
         </div>
 
-        <br/>
-
-        <div className="borderBox  m-4 mt-8 flex items-center justify-evenly">
-            <StatBox value={10} heading="STR" />
-            <StatBox value={10} heading="DEX" />
-            <StatBox value={10} heading="CON" />
-            <StatBox value={10} heading="INT" />
-            <StatBox value={10} heading="WIS" />
-            <StatBox value={10} heading="CHA" />
-        </div>
-
-        <br/><br/>
-
-        <div className="borderBox mx-4 my-10">
+        <div className="borderBox mx-4 my-4">
           <div className="flex justify-center">
             <h1>
               Inventory
@@ -181,7 +207,7 @@ export default function Home() {
           </div>
           <div className="flex justify-center space-x-2 mb-2 rounded-lg  bg-slate-100 w-full py-2">
             <div className="w-1/2">
-              <Input onSubmit={addItem} buttonText="add"></Input>
+              <Input onSubmit={addItem} buttonText="Add"></Input>
             </div>
             
           </div>
@@ -207,23 +233,7 @@ export default function Home() {
 
         <br/> <br/>
 
-        <div className="flex items-center mx-4 justify-evenly">
-
-          <button className="submitButton " onClick={createParty} disabled={inParty}> 
-            <p className="mx-4">Create Party</p>
-          </button>
-
-          <div className="w-1/2">
-            <Input onSubmit={joinParty} buttonText="Join Party" disabled={inParty} inputClass="w-1/2 mx-2" buttonClass="w-1/3"></Input>
-          </div>
-
-          <p className="text-white text-center">
-            {
-              partyJoinError ? partyJoinError : ''
-            }
-          </p>
-
-        </div>
+        
         <div className="mx-4 w-1/2 items-center">
           
         </div>
@@ -241,9 +251,16 @@ export default function Home() {
             Statuses
           </h1>
         </div>
-
+        
+        {/* Display currently applied statuses */}
         <div className="grid grid-cols-5">
-            {statuses.map((status, i) => <StatusBox key={i} statusName={status} removeStatus={removeStatus}/>)}
+            {
+              statuses.map((status, i) => { 
+                let key = status.status as keyof typeof statusVisuals
+                let options = "options" in statusVisuals[key] ? statusVisuals[key]["options"] : undefined
+                return <StatusBox key={i} id={status.id} statusName={status.status} optionChanged={changeStatusOption} removeStatus={removeStatus} selectedOption={status.option} options={options}/>
+              })
+            }
         </div>
         <br/> <br/>
         <button className="submitButton" onClick={toggleStatusMenu}>Add Status</button>
@@ -252,21 +269,27 @@ export default function Home() {
 
             <div className='ml-6 mr-4 my-2 grid grid-cols-5'>
   
-              {/* Check which statuses are not applied, the display those*/}
+              {/* Check which statuses are not applied, the display those as selectable*/}
+              
+              {Object.keys(statusVisuals).reduce((unusedStatuses: any[], statusKey:string, i) => {
+                let key = statusKey as keyof typeof statusVisuals
+                let id = uuidv4();
+                let exists = statuses.findIndex((status) => status.status === statusKey);
 
-              {Object.keys(statusVisuals).reduce((unusedStatuses: string[], element:string) => {
-                if(!statuses.includes(element)) {
-                  unusedStatuses.push(element)
+                // always show statuses that have options so they can be added multiple times
+                if(!(exists > 0) || statusVisuals[key].options.length > 0) {
+                  
+                  let initialOption = statusVisuals[key].options[0]
+                  unusedStatuses.push(
+                  <button key={i} onClick={()=>addStatus(id, statusKey, initialOption)}>
+                    <StatusBox id={id} statusName={statusKey}/>
+                  </button>
+
+                  )
                 }
                 return unusedStatuses
 
-              }, []).map((status, i) =>
-
-                <button key={i} onClick={()=>addStatus(status)}>
-                  <StatusBox statusName={status}/>
-                </button>
-              
-                )}
+              }, [])}
 
             </div>
 
@@ -289,7 +312,7 @@ export default function Home() {
           <div className="flex justify-center">
             {
               partyId ? 
-                <h2>
+                <h2 className="mb-4">
                   Party ID: {partyId}
                 </h2>
               :
