@@ -56,7 +56,7 @@ export function SortableItem(props: SortableItemProps) {
                     </svg>
                     <button className=" rounded-lg  bg-slate-100 w-4/5 mb-2" onClick={handleClick}>
                         
-                            <p className="mx-4">{props.data.name}</p>
+                            <p className="mx-4 text-lg">{props.data.name}</p>
                     </button>
                     <div className='flex justify-end w-1/6'>
                         <input  className="z-50 pl-1 mx-4 border-2 border-black rounded-lg w-full " defaultValue="1" type="number" step="1" max="9999"/>

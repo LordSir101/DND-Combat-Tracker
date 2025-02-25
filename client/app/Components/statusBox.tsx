@@ -3,61 +3,33 @@ import { statusVisuals } from "../statusVisuals";
 
 type StatusBoxProps = {
   statusName: string;
+  id: string
   scale?: string
-  removeStatus?: (status: string) => void;
-
+  removeStatus?: (id:string) => void;
+  options?: string[]
+  selectedOption?: string //for displaying chesen option in party memeber view
+  optionChanged?: (id:string, option:string) => void
 };
 
 export function StatusBox(props: StatusBoxProps) {
-  //const [value, setValue] = useState(props.value);
-  
-  // this obj needs to be here for tailwind to see it
-//   let statusVisuals = {
-//     blinded: {
-//         text: "Blinded",
-//         textColor: "text-neutral-200",
-//         borderColor: "border-slate-800",
-//         innerColor: "bg-slate-500"
-//     },
-//     charmed: {
-//         text: "Charmed",
-//         textColor: "text-slate-50",
-//         borderColor: "border-purple-700",
-//         innerColor: "bg-purple-300"
-//     },
-//     frightened: {
-//         text: "Frightened",
-//         textColor: "text-slate-50",
-//         borderColor: "border-blue-900",
-//         innerColor: "bg-blue-300"
-//     },
-//     grappled: {
-//         text: "Grappled",
-//         textColor: "text-neutral-200",
-//         borderColor: "border-red-600",
-//         innerColor: "bg-red-400"
-//     },
-//     invisible: {
-//         text: "Invisible",
-//         textColor: "text-white",
-//         borderColor: "border-blue-300",
-//         innerColor: "bg-sky-100"
-//     }
-// }
-
     const key = props.statusName as keyof typeof statusVisuals
+
     function handleClose(e:any) {
         if(props.removeStatus){
-            props.removeStatus(props.statusName)
+            props.removeStatus(props.id)
         }
     }
-   
-//   const borderColor:string = statusVisuals[key]["borderColor"]
-  
+
+    function handleOptionChange(e:any) {
+      if(props.optionChanged) {
+        props.optionChanged(props.id, e.target.value)
+      }
+      
+    }
 
   return (
     // add a margin to the status box if scale property isnt applied for spacing
-    <div className={`${props.scale ? props.scale : "mx-3"} relative flex flex-col items-center  border-4 rounded-lg px-4 py-2 ${statusVisuals[key]["borderColor"]} ${statusVisuals[key]["innerColor"]}` } >
+    <div className={`${props.scale ? props.scale : "mx-3 my-2"} relative flex flex-col items-center  border-4 rounded-lg px-4 py-2 ${statusVisuals[key]["borderColor"]} ${statusVisuals[key]["innerColor"]}` } >
         {
             props.removeStatus ?
                 <button
@@ -71,9 +43,23 @@ export function StatusBox(props: StatusBoxProps) {
             <></>
         }
         
-      <p className={`${statusVisuals[key]["textColor"]} ${props.scale} font-bold text-[20px] drop-shadow-[0_1.5px_5px_rgba(0,0,0,1)]`}>
-        {statusVisuals[key]["text"]}
+      <p className={`${statusVisuals[key]["textColor"]} ${props.scale} whitespace-pre font-bold text-[18px] drop-shadow-[0_1.5px_5px_rgba(0,0,0,1)]`}>
+        {statusVisuals[key]["text"]} {props.selectedOption && !props.options ? `(${props.selectedOption})` : ''}
+        
       </p>
+      {
+        // display dropdown menu if status has options
+        props.options ?
+        
+        props.options.length > 0 ? 
+          <select onChange={handleOptionChange} value={props.selectedOption}>
+            {props.options.map((option:string, i:number ) => <option key={i}> {option} </option>)}
+          </select>
+          :
+          <></>
+        :
+        <></>
+      }
     </div>
     
   )

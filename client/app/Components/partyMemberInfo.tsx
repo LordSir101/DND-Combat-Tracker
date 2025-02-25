@@ -3,6 +3,7 @@ import {CSS} from '@dnd-kit/utilities';
 import { PartyMember } from '../types';
 import { useState } from 'react';
 import { StatusBox } from './statusBox';
+import { statusVisuals } from '../statusVisuals';
 
 type partyMemberInfoProps = {
     data: PartyMember
@@ -51,9 +52,17 @@ export function PartyMemberInfo(props: partyMemberInfoProps) {
                         />
                     </svg> */}
                     <button className=" rounded-lg  bg-slate-100 mb-2 flex items-start w-full" onClick={handleClick}>
-                        <p className="mx-4 w-1/2">{props.data.name} HP: {props.data.hp}</p>
+                        <div className='flex items-start mx-4'>
+                            <p className="mx-4 my-4 font-bold">{props.data.name} </p>
+                            <p className="mx-4  my-4 font-bold whitespace-pre">HP:  {props.data.hp}</p>
+                        </div>
+                       
                         <div className='grid grid-cols-5 w-full'>
-                            {props.data.statuses.map((status, i) => <StatusBox key={i} scale="scale-75" statusName={status}/>)}
+                            {
+                                props.data.statuses.map((status, i) => {
+                                    return <StatusBox key={i} id={status.id} scale="scale-75" statusName={status.status} selectedOption={status.option} />
+                                })
+                            }
                         </div>
                             
                     </button>
