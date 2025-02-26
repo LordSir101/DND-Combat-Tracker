@@ -4,7 +4,9 @@ import { InventoryItem } from '../types';
 import { useState } from 'react';
 
 type SortableItemProps = {
-    data: InventoryItem
+    data: InventoryItem;
+    updateData: (id:string, description: string | undefined, quantity: number) => void
+    removeItem: (id: string) => void
 }
 
 export function SortableItem(props: SortableItemProps) {
@@ -29,9 +31,19 @@ export function SortableItem(props: SortableItemProps) {
         setIsClicked(!isClicked)
     }
 
+    function handleRemove(e: any) {
+        props.removeItem(props.data.id)
+    }
+
     function handleDescriptionChange(text:string)
     {
         props.data.description = text
+        props.updateData(props.data.id, props.data.description, props.data.quantity)
+    }
+
+    function handleQuantityChange(number:string) {
+        props.data.quantity = Number(number)
+        props.updateData(props.data.id, props.data.description, props.data.quantity)
     }
 
     return (
@@ -54,12 +66,15 @@ export function SortableItem(props: SortableItemProps) {
                             d="M4 6h16M4 12h16M4 18h16"
                         />
                     </svg>
+                    <button className='ml-2 bg-transparent border-none' onClick={handleRemove}>
+                        <span className='text-gray-400 text-2xl'>&times;</span>
+                    </button>
                     <button className=" rounded-lg  bg-slate-100 w-4/5 mb-2" onClick={handleClick}>
                         
                             <p className="mx-4 text-lg">{props.data.name}</p>
                     </button>
                     <div className='flex justify-end w-1/6'>
-                        <input  className="z-50 pl-1 mx-4 border-2 border-black rounded-lg w-full " defaultValue="1" type="number" step="1" max="9999"/>
+                        <input  className="z-50 pl-1 mx-4 border-2 border-black rounded-lg w-full " defaultValue={props.data.quantity || 1} type="number" step="1" max="9999" onChange={(e) =>handleQuantityChange(e.target.value)}/>
                     </div>
                 </div>
                 {
