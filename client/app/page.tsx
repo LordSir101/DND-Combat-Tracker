@@ -3,7 +3,7 @@ import { closestCenter, DndContext, DragOverlay } from "@dnd-kit/core";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
 import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 
 import { SortableItem } from "./Components/sortableItem";
 import { PartyMemberInfo } from "./Components/partyMemberInfo";
@@ -20,20 +20,20 @@ import { v4 as uuidv4 } from 'uuid';
 const socket = io('http://localhost:3001')
 
 export default function Home() {
-  const [items, setItems] = useState<InventoryItem[]>([])
+  const [items, setItems] = useState<InventoryItem[]>(getLocalData("items") || [])
   // const [statuses, setStatuses] = useState<string[]>([])
-  const [statuses, setStatuses] = useState<Status[]>([])
+  const [statuses, setStatuses] = useState<Status[]>(getLocalData("statuses") ||[])
   const [partyMembers, setPartyMembers] = useState<PartyMember[]>([])
   const [partyJoinError, setPartyJoinError] = useState<string | null>(null)
 
-  const [hp, setHp] = useState(10)
+  const [hp, setHp] = useState(getLocalData("hp") ||10)
   const [lvl, setLvl] = useState(1)
-  const [init, setInit] = useState(0)
-  const [name, setName] = useState('Player')
+  const [init, setInit] = useState(getLocalData("init") || 0)
+  const [name, setName] = useState(getLocalData("name") ||'Player')
   const [showStatusMenu, setShowStatusMenu] = useState(false)
   const [inParty, setInparty] = useState(false)
   const [isHost, setIsHost] = useState(false)
-  const [partyId, setPartyId] = useState<number | undefined> (undefined)
+  const [partyId, setPartyId] = useState<string| undefined> (undefined)
 
   let playerData = {
     name,
@@ -42,9 +42,32 @@ export default function Home() {
     statuses
   }
 
+  let localData = {
+    name,
+    hp,
+    init,
+    statuses,
+    items
+  }
+
   const addItem = (name: string) => {
     let id = (items.length + 1).toString()
-    setItems([...items, {id, name}])
+    setItems([...items, {id, name, quantity:1}])
+  }
+
+  const removeItem = (id: string) => {
+    let index = items.findIndex((item) => item.id === id);
+    let newItems = items
+    newItems.splice(index, 1)
+    setItems([...newItems])
+  }
+
+  const updateItem = (id: string, description:string | undefined, quantity: number) => {
+    let index = items.findIndex((item) => item.id === id);
+    let newItems = items
+    newItems[index].description = description
+    newItems[index].quantity = quantity
+    setItems([...newItems])
   }
 
   const addStatus = (id:string, status: string, option: string) => {
@@ -53,7 +76,6 @@ export default function Home() {
 
   // remove status from applied statuses
   const removeStatus = (id:string) => {
-    console.log(id)
     let index = statuses.findIndex((status) => status.id === id);
     let newStatuses = statuses
     newStatuses.splice(index, 1)
@@ -96,7 +118,7 @@ export default function Home() {
     setIsHost(false)
   }
 
-  function showParty(idOfParty: number) {
+  function showParty(idOfParty: string) {
     if(idOfParty) {
       setPartyId(idOfParty)
       setInparty(true)
@@ -106,6 +128,32 @@ export default function Home() {
       setPartyJoinError('The party ID does not exist')
     }
   }
+
+  function saveLocalData(data:any) {
+    localStorage.setItem("playerData", JSON.stringify(data));
+  }
+
+  function getLocalData(key:string) {
+    // let data = localStorage.getItem("playerData")
+    // if(data){
+    //   let dataObj = JSON.parse(data)
+
+    //   // setHp(dataObj.hp)
+    //   // setName(dataObj.name)
+    //   // setInit(dataObj.init)
+    //   // setStatuses([...dataObj.statuses])
+    //   // setItems([...dataObj.items])
+    //   return dataObj[key]
+    // }
+
+    return null
+    
+  }
+
+
+  // useLayoutEffect(() => {
+  //     getLocalData();
+  //   }, []);
 
   useEffect(() => {
     socket.on('add-player-to-party', (data) => {
@@ -147,8 +195,14 @@ export default function Home() {
   // send player data to party whenever any of the relevant stats change
   useEffect(() => {
     socket.emit("update-player-data", playerData)
+    //saveLocalData(localData)
 
   }, [hp, name, init, statuses])
+
+  useEffect(() => {
+    //saveLocalData(localData)
+
+  }, [items])
   
 
   return (
@@ -222,7 +276,7 @@ export default function Home() {
               <SortableContext
                 items={items}
                 strategy={verticalListSortingStrategy}>
-                {items.map(item => <SortableItem key={item.id} data={item} />)}
+                {items.map(item => <SortableItem key={item.id} data={item} updateData={updateItem} removeItem={removeItem}/>)}
               </SortableContext>
 
             </ul>
@@ -312,9 +366,14 @@ export default function Home() {
           <div className="flex justify-center">
             {
               partyId ? 
-                <h2 className="mb-4">
-                  Party ID: {partyId}
-                </h2>
+                  <div className="flex items-center">
+                    <span className="inline-flex items-center py-2.5 px-4 text-center text-lg font-bold">Party ID:</span>
+                    <input id="PartyID" value={partyId} className="border-none bg-transparent w-1/3 " readOnly disabled></input> 
+                    <button onClick={() => {navigator.clipboard.writeText(partyId)}} className="submitButton">
+                      <span id="default-message">Copy</span>
+                    </button>
+
+                  </div>
               :
                 <h2>
                   Party not joined
@@ -378,6 +437,3 @@ const getMemberPos = (items: PartyMember[], id: string) => {
   return items.findIndex((item) => item.id === id);
 }
   
-
-
-
