@@ -7,6 +7,7 @@ import { statusVisuals } from '../statusVisuals';
 
 type partyMemberInfoProps = {
     data: PartyMember
+    clientID: string | undefined
     handleTrade: (id:string) => void
 }
 
@@ -61,9 +62,15 @@ export function PartyMemberInfo(props: partyMemberInfoProps) {
                             <p className="mx-4 my-4 font-bold">{props.data.name} </p>
                             <p className="mx-4  my-4 font-bold whitespace-pre">HP:  {props.data.hp}</p>
                         </div>
-                        <button className='submitButton' onClick={handleTrade}>
-                            Trade
-                        </button>
+                        {
+                            props.clientID != props.data.id ?
+                                <button className='submitButton' onClick={handleTrade}>
+                                Trade
+                                </button> 
+                            :
+                            <></>
+                        }
+                       
                        
                         <div className='grid grid-cols-5 w-full'>
                             {

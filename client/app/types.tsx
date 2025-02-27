@@ -3,7 +3,7 @@ export interface InventoryItem  {
     name: string;
     description?: string;
     quantity: number
-    amountToTrade?: number
+    amountToTrade: number
 }
 
 export interface Status {

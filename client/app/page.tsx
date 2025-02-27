@@ -44,7 +44,8 @@ export default function Home() {
     name,
     hp,
     init,
-    statuses
+    statuses,
+    id: socket.id
   }
 
   let localData = {
@@ -55,9 +56,11 @@ export default function Home() {
     items
   }
 
-  const addItem = (name: string) => {
-    let id = (items.length + 1).toString()
-    setItems([...items, {id, name, quantity:1}])
+  const addItem = (name: string, itemText?: string, amount?: number) => {
+    let id = name//(items.length + 1).toString()
+    let quantity = amount ? amount : 1
+    let description = itemText ? itemText : ''
+    setItems([...items, {id, name, quantity, description, amountToTrade:0}])
   }
 
   const removeItem = (id: string) => {
@@ -67,16 +70,18 @@ export default function Home() {
     setItems([...newItems])
   }
 
-  const updateItem = (id: string, description:string | undefined, quantity: number) => {
+  const updateItem = (id: string, description:string | undefined, quantity: number, amountToTrade?:number) => {
     let index = items.findIndex((item) => item.id === id);
     let newItems = items
     newItems[index].description = description
     newItems[index].quantity = quantity
+    newItems[index].amountToTrade = amountToTrade ? amountToTrade : 0
     setItems([...newItems])
   }
 
   const addItemToTrade = (data: InventoryItem) => {
     //let id = (itemsToTrade.length + 1).toString()
+    data.amountToTrade = 1
     setItemsToTrade([...itemsToTrade, data])
   }
 
@@ -102,6 +107,38 @@ export default function Home() {
   const endTrade = () => {
     setIsTrading(false)
     settradingPartnerID(undefined)
+    setItemsToTrade([])
+  }
+
+  const sendTrade = () => {
+    socket.emit('send-items', itemsToTrade, tradingPartnerID)
+    itemsToTrade.forEach((itemToTrade) => {
+      let indexOfItem = items.findIndex((item) => itemToTrade.id === item.id);
+      let currItem = items[indexOfItem]
+      currItem.quantity -= itemToTrade.amountToTrade
+
+      if(currItem.quantity == 0) {
+        removeItem(currItem.id)
+      }
+      else {
+        updateItem(currItem.id, currItem.description, currItem.quantity, 0)
+      }
+    })
+    setItemsToTrade([])
+  }
+
+  const reciveTrade = (itemsRecieved: InventoryItem[]) => {
+    itemsRecieved.forEach((recievedItem) => {
+      let indexOfMatchingName = items.findIndex((item) => recievedItem.name === item.name);
+      if(indexOfMatchingName > -1) {
+        let currQuantity = items[indexOfMatchingName].quantity
+        let newQuantity = currQuantity + recievedItem.amountToTrade
+        updateItem(recievedItem.id, recievedItem.description, newQuantity, 0)
+      }
+      else {
+        addItem(recievedItem.name, recievedItem.description, recievedItem.amountToTrade)
+      }
+    })
   }
 
   const addStatus = (id:string, status: string, option: string) => {
@@ -236,6 +273,14 @@ export default function Home() {
   useEffect(() => {
     //saveLocalData(localData)
 
+    socket.on('recieve-items', (itemsRecieved) => {
+      reciveTrade(itemsRecieved)
+    })
+
+    return () => {
+      socket.off('recieve-items')
+    }
+
   }, [items])
   
 
@@ -266,6 +311,9 @@ export default function Home() {
 
                 </div>
               </div>
+            </div>
+            <div className="flext justify-center items-center">
+              <button onClick={sendTrade}>Confirm</button>
             </div>
             
           </div>
@@ -462,7 +510,7 @@ export default function Home() {
                 <SortableContext
                   items={partyMembers}
                   strategy={verticalListSortingStrategy}>
-                  {partyMembers.map(member => <PartyMemberInfo key={member.id} data={member} handleTrade={startTrade}/>)}
+                  {partyMembers.map(member => <PartyMemberInfo key={member.id} data={member} clientID={socket.id} handleTrade={startTrade}/>)}
                 </SortableContext>
 
               </ul>            

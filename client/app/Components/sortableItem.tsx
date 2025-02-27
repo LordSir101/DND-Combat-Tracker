@@ -74,7 +74,7 @@ export function SortableItem(props: SortableItemProps) {
                             <p className="mx-4 text-lg">{props.data.name}</p>
                     </button>
                     <div className='flex justify-end w-1/6'>
-                        <input  className=" pl-1 mx-4 border-2 border-black rounded-lg w-full " defaultValue={props.data.quantity || 1} type="number" step="1" max="9999" onChange={(e) =>handleQuantityChange(e.target.value)}/>
+                        <input  className=" pl-1 mx-4 border-2 border-black rounded-lg w-full "  value={props.data.quantity} type="number" step="1" max="9999" onChange={(e) =>handleQuantityChange(e.target.value)}/>
                     </div>
                 </div>
                 {
