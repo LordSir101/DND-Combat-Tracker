@@ -71,8 +71,8 @@ export function PartyMemberInfo(props: partyMemberInfoProps) {
                             <></>
                         }
                        
-                       
-                        <div className='grid grid-cols-5 w-full'>
+                       {/* //grid grid-cols-5 */}
+                        <div className='flex flex-wrap gap-2  w-full'>
                             {
                                 props.data.statuses.map((status, i) => {
                                     return <StatusBox key={i} id={status.id} scale="scale-75" statusName={status.status} selectedOption={status.option} />

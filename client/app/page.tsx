@@ -285,7 +285,7 @@ export default function Home() {
   
 
   return (
-    <div className="flex mx-auto items-center">
+    <div className="flex">
 
       {
         isTrading ?
@@ -321,44 +321,43 @@ export default function Home() {
           <></>
       }
       
-
-      <div className="flex items-start flex-1">
+      {/* flex-col lg:flex-row */}
+      <div className="flex flex-wrap justify-around flex-1 ">
         
         
-        <div className="w-1/3">
-          <div className="borderBox flex-col m-4 mt-8">
-            <div className=" flex items-center justify-evenly">
-              <div className="ml-2 flex-col items-center">
+        <div className="flex-1 min-w-[600px]" >
+          <div className="borderBox flex-col  m-4 mt-8">
+            <div className=" flex items-center justify-evenly ">
+              <div className="flex-col items-center ">
                 <h1 className="text-center ">{name}</h1>
                 <Input onSubmit={setName} buttonClass="w-2/6" buttonText="Change"></Input>
               </div>
-              <div className="ml-2 flex items-center">
+              <div className="flex">
                 <StatBox value={lvl} heading="LVL" updateValue={setLvl}/>
                 <StatBox value={hp} heading="HP" updateValue={setHp}/>
                 <StatBox value={init} heading="INIT" updateValue={setInit}/>
               </div>
             </div>
 
-            <div>
-                <div className=" m-4 mt-8 flex items-center justify-evenly">
-                  <StatBox value={10} heading="STR" />
-                  <StatBox value={10} heading="DEX" />
-                  <StatBox value={10} heading="CON" />
-                  <StatBox value={10} heading="INT" />
-                  <StatBox value={10} heading="WIS" />
-                  <StatBox value={10} heading="CHA" />
-              </div>
+            <div className=" m-4 mt-8 flex justify-evenly">
+                <StatBox value={10} heading="STR" />
+                <StatBox value={10} heading="DEX" />
+                <StatBox value={10} heading="CON" />
+                <StatBox value={10} heading="INT" />
+                <StatBox value={10} heading="WIS" />
+                <StatBox value={10} heading="CHA" />
             </div>
 
-            <div className="flex items-center mx-4 mt-12 justify-evenly">
+            <div className="flex items-center mx-4 mt-12 justify-around">
 
               <button className="submitButton " onClick={createParty} disabled={inParty}> 
                 <p className="mx-4">Create Party</p>
               </button>
 
-              <div className="w-1/2">
+              <Input onSubmit={joinParty} buttonText="Join Party" disabled={inParty} inputClass="w-1/2 mx-2"></Input>  {/*buttonClass="w-1/4"*/}
+              {/* <div className="w-1/2">
                 <Input onSubmit={joinParty} buttonText="Join Party" disabled={inParty} inputClass="w-1/2 mx-2" buttonClass="w-1/3"></Input>
-              </div>
+              </div> */}
 
               <p className="text-white text-center">
                 {
@@ -371,7 +370,7 @@ export default function Home() {
           </div>
 
           <div className="borderBox mx-4 my-4">
-            <div className="flex justify-center">
+            <div className="flex justify-center ">
               <h1>
                 Inventory
               </h1>
@@ -417,63 +416,65 @@ export default function Home() {
 
         </div>
 
-        
-        <div className="borderBox mx-4 mt-8 w-1/3 ">
-          <div className="flex justify-center">
-            <h1>
-              Statuses
-            </h1>
-          </div>
+        <div className="flex-1 min-w-[500px]">
+          <div className="borderBox mx-4 mt-8  ">
+            <div className="flex justify-center">
+              <h1>
+                Statuses
+              </h1>
+            </div>
+            
+            {/* Display currently applied statuses */}
+            <div className="flex flex-wrap gap-2">
+                {
+                  statuses.map((status, i) => { 
+                    let key = status.status as keyof typeof statusVisuals
+                    let options = "options" in statusVisuals[key] ? statusVisuals[key]["options"] : undefined
+                    return <StatusBox key={i} id={status.id} statusName={status.status} optionChanged={changeStatusOption} removeStatus={removeStatus} selectedOption={status.option} options={options}/>
+                  })
+                }
+            </div>
+            <br/> <br/>
+            <button className="submitButton" onClick={toggleStatusMenu}>Add Status</button>
+            {
+                showStatusMenu ?
+                // ml-6 mr-4 my-2 grid auto-cols-min grid-cols-3 lg:grid-cols-4 xl:grid-cols-5
+                <div className='flex flex-wrap gap-2'> 
+      
+                  {/* Check which statuses are not applied, the display those as selectable*/}
+                  
+                  {Object.keys(statusVisuals).reduce((unusedStatuses: any[], statusKey:string, i) => {
+                    let key = statusKey as keyof typeof statusVisuals
+                    let id = uuidv4();
+                    let exists = statuses.findIndex((status) => status.status === statusKey);
+
+                    // always show statuses that have options so they can be added multiple times
+                    if(!(exists > 0) || statusVisuals[key].options.length > 0) {
+                      
+                      let initialOption = statusVisuals[key].options[0]
+                      unusedStatuses.push(
+                      <button key={i} onClick={()=>addStatus(id, statusKey, initialOption)}>
+                        <StatusBox id={id} statusName={statusKey}/>
+                      </button>
+
+                      )
+                    }
+                    return unusedStatuses
+
+                  }, [])}
+
+                </div>
+
+                :
+
+                <div></div>
+            }
           
-          {/* Display currently applied statuses */}
-          <div className="grid grid-cols-5">
-              {
-                statuses.map((status, i) => { 
-                  let key = status.status as keyof typeof statusVisuals
-                  let options = "options" in statusVisuals[key] ? statusVisuals[key]["options"] : undefined
-                  return <StatusBox key={i} id={status.id} statusName={status.status} optionChanged={changeStatusOption} removeStatus={removeStatus} selectedOption={status.option} options={options}/>
-                })
-              }
           </div>
-          <br/> <br/>
-          <button className="submitButton" onClick={toggleStatusMenu}>Add Status</button>
-          {
-              showStatusMenu ?
-
-              <div className='ml-6 mr-4 my-2 grid grid-cols-5'>
-    
-                {/* Check which statuses are not applied, the display those as selectable*/}
-                
-                {Object.keys(statusVisuals).reduce((unusedStatuses: any[], statusKey:string, i) => {
-                  let key = statusKey as keyof typeof statusVisuals
-                  let id = uuidv4();
-                  let exists = statuses.findIndex((status) => status.status === statusKey);
-
-                  // always show statuses that have options so they can be added multiple times
-                  if(!(exists > 0) || statusVisuals[key].options.length > 0) {
-                    
-                    let initialOption = statusVisuals[key].options[0]
-                    unusedStatuses.push(
-                    <button key={i} onClick={()=>addStatus(id, statusKey, initialOption)}>
-                      <StatusBox id={id} statusName={statusKey}/>
-                    </button>
-
-                    )
-                  }
-                  return unusedStatuses
-
-                }, [])}
-
-              </div>
-
-              :
-
-              <div></div>
-          }
-        
         </div>
         
-        <div className="w-1/3">
+        
+        <div className="flex-1 min-w-[500px]">
           <div className="borderBox m-4 mt-8 w-6/7">
             
             <div className="flex justify-center">
