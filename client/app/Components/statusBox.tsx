@@ -28,8 +28,8 @@ export function StatusBox(props: StatusBoxProps) {
     }
 
   return (
-    // add a margin to the status box if scale property isnt applied for spacing
-    <div className={`${props.scale ? props.scale : "mx-3 my-2"} relative flex flex-col items-center  border-4 rounded-lg px-4 py-2 ${statusVisuals[key]["borderColor"]} ${statusVisuals[key]["innerColor"]}` } >
+    // add a margin to the status box if scale property isnt applied for spacing mx-3 my-2
+    <div className={`${props.scale ? props.scale : ""} relative flex flex-col items-center w-[110px] lg:w-[130px] border-4 rounded-lg px-4 py-2 ${statusVisuals[key]["borderColor"]} ${statusVisuals[key]["innerColor"]}` } >
         {
             props.removeStatus ?
                 <button
@@ -43,7 +43,7 @@ export function StatusBox(props: StatusBoxProps) {
             <></>
         }
         
-      <p className={`${statusVisuals[key]["textColor"]} ${props.scale} whitespace-pre font-bold text-[18px] drop-shadow-[0_1.5px_5px_rgba(0,0,0,1)]`}>
+      <p className={`${statusVisuals[key]["textColor"]} ${props.scale} whitespace-pre font-bold text-[16px] lg:text-[18px] drop-shadow-[0_1.5px_5px_rgba(0,0,0,1)]`}>
         {statusVisuals[key]["text"]} {props.selectedOption && !props.options ? `(${props.selectedOption})` : ''}
         
       </p>

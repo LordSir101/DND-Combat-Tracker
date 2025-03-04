@@ -17,6 +17,8 @@ export class Party {
         this.rollInitiativeAuto()
       })
 
+      this.addEventListenersForAll(host)
+
     }
 
     sendPlayerDataToParty(data) {
@@ -27,16 +29,48 @@ export class Party {
         this.members.push(socket)
         this.partyInfo[socket.id] = data
 
+        this.addEventListenersForPlayers(socket)
+        this.addEventListenersForAll(socket)
+
         socket.on('update-player-data', (data) => {
             this.updateMemberData(data, socket.id)
+        })
+
+        socket.on('send-items', (items, tradingPartnerID) => {
+            // console.log(this.members)
+            // console.log(tradingPartnerID)
+            this.members.forEach((member) => {
+                if(member.id == tradingPartnerID) {
+                    member.emit('recieve-items', items)
+                }
+            })
         })
 
         socket.emit('recive-party-data', this.partyInfo)
     }
 
+    addEventListenersForPlayers(socket) {
+        socket.on('update-player-data', (data) => {
+            this.updateMemberData(data, socket.id)
+        })
+
+        
+    }
+
+    addEventListenersForAll(socket) {
+        socket.on('send-items', (items, tradingPartnerID) => {
+            
+            this.members.forEach((member) => {
+                if(member.id == tradingPartnerID) {
+                    member.emit('recieve-items', items)
+                }
+            })
+        })
+    }
+
     updateMemberData(data, socketID) {
         this.partyInfo[socketID] = data
-        this.partyInfo[socketID].id = socketID
+        //this.partyInfo[socketID].id = socketID
         this.emitDataToAll('update-party-member-data', data)
     }
 

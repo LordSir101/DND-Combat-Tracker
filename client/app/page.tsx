@@ -16,11 +16,13 @@ import { StatusBox } from "./Components/statusBox";
 import { statusVisuals } from "./statusVisuals";
 
 import { v4 as uuidv4 } from 'uuid';
+import { TradeableItem } from "./Components/tradeableItem";
 
 const socket = io('http://localhost:3001')
 
 export default function Home() {
   const [items, setItems] = useState<InventoryItem[]>(getLocalData("items") || [])
+  const [itemsToTrade, setItemsToTrade] = useState<InventoryItem[]>([])
   // const [statuses, setStatuses] = useState<string[]>([])
   const [statuses, setStatuses] = useState<Status[]>(getLocalData("statuses") ||[])
   const [partyMembers, setPartyMembers] = useState<PartyMember[]>([])
@@ -35,11 +37,15 @@ export default function Home() {
   const [isHost, setIsHost] = useState(false)
   const [partyId, setPartyId] = useState<string| undefined> (undefined)
 
+  const [isTrading, setIsTrading] = useState(false)
+  const [tradingPartnerID, settradingPartnerID,] = useState<string| undefined> (undefined)
+
   let playerData = {
     name,
     hp,
     init,
-    statuses
+    statuses,
+    id: socket.id
   }
 
   let localData = {
@@ -50,9 +56,11 @@ export default function Home() {
     items
   }
 
-  const addItem = (name: string) => {
-    let id = (items.length + 1).toString()
-    setItems([...items, {id, name, quantity:1}])
+  const addItem = (name: string, itemText?: string, amount?: number) => {
+    let id = name//(items.length + 1).toString()
+    let quantity = amount ? amount : 1
+    let description = itemText ? itemText : ''
+    setItems([...items, {id, name, quantity, description, amountToTrade:0}])
   }
 
   const removeItem = (id: string) => {
@@ -62,12 +70,75 @@ export default function Home() {
     setItems([...newItems])
   }
 
-  const updateItem = (id: string, description:string | undefined, quantity: number) => {
+  const updateItem = (id: string, description:string | undefined, quantity: number, amountToTrade?:number) => {
     let index = items.findIndex((item) => item.id === id);
     let newItems = items
     newItems[index].description = description
     newItems[index].quantity = quantity
+    newItems[index].amountToTrade = amountToTrade ? amountToTrade : 0
     setItems([...newItems])
+  }
+
+  const addItemToTrade = (data: InventoryItem) => {
+    //let id = (itemsToTrade.length + 1).toString()
+    data.amountToTrade = 1
+    setItemsToTrade([...itemsToTrade, data])
+  }
+
+  const removeItemToTrade = (id: string) => {
+    let index = itemsToTrade.findIndex((itemToTrade) => itemToTrade.id === id);
+    let newItems = itemsToTrade
+    newItems.splice(index, 1)
+    setItemsToTrade([...newItems])
+  }
+
+  const updateItemToTrade = (id: string, numToTrade: number) => {
+    let index = itemsToTrade.findIndex((itemToTrade) => itemToTrade.id === id);
+    let newItems = itemsToTrade
+    newItems[index].amountToTrade = numToTrade
+    setItemsToTrade([...newItems])
+  }
+
+  const startTrade = (id:string) => {
+    setIsTrading(true)
+    settradingPartnerID(id)
+  }
+
+  const endTrade = () => {
+    setIsTrading(false)
+    settradingPartnerID(undefined)
+    setItemsToTrade([])
+  }
+
+  const sendTrade = () => {
+    socket.emit('send-items', itemsToTrade, tradingPartnerID)
+    itemsToTrade.forEach((itemToTrade) => {
+      let indexOfItem = items.findIndex((item) => itemToTrade.id === item.id);
+      let currItem = items[indexOfItem]
+      currItem.quantity -= itemToTrade.amountToTrade
+
+      if(currItem.quantity == 0) {
+        removeItem(currItem.id)
+      }
+      else {
+        updateItem(currItem.id, currItem.description, currItem.quantity, 0)
+      }
+    })
+    setItemsToTrade([])
+  }
+
+  const reciveTrade = (itemsRecieved: InventoryItem[]) => {
+    itemsRecieved.forEach((recievedItem) => {
+      let indexOfMatchingName = items.findIndex((item) => recievedItem.name === item.name);
+      if(indexOfMatchingName > -1) {
+        let currQuantity = items[indexOfMatchingName].quantity
+        let newQuantity = currQuantity + recievedItem.amountToTrade
+        updateItem(recievedItem.id, recievedItem.description, newQuantity, 0)
+      }
+      else {
+        addItem(recievedItem.name, recievedItem.description, recievedItem.amountToTrade)
+      }
+    })
   }
 
   const addStatus = (id:string, status: string, option: string) => {
@@ -202,28 +273,73 @@ export default function Home() {
   useEffect(() => {
     //saveLocalData(localData)
 
+    socket.on('recieve-items', (itemsRecieved) => {
+      reciveTrade(itemsRecieved)
+    })
+
+    return () => {
+      socket.off('recieve-items')
+    }
+
   }, [items])
   
 
   return (
-    <div className="flex items-start">
-      
-      <div className="w-1/3">
-        <div className="borderBox flex-col m-4 mt-8">
-          <div className=" flex items-center justify-evenly">
-            <div className="ml-2 flex-col items-center">
-              <h1 className="text-center ">{name}</h1>
-              <Input onSubmit={setName} buttonClass="w-2/6" buttonText="Change"></Input>
-            </div>
-            <div className="ml-2 flex items-center">
-              <StatBox value={lvl} heading="LVL" updateValue={setLvl}/>
-              <StatBox value={hp} heading="HP" updateValue={setHp}/>
-              <StatBox value={init} heading="INIT" updateValue={setInit}/>
-            </div>
-          </div>
+    <div className="flex">
 
-          <div>
-              <div className=" m-4 mt-8 flex items-center justify-evenly">
+      {
+        isTrading ?
+          <div className="flex-col items-stretch borderBox z-100 w-1/2 h-1/3 border-blue-900 border-2 absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        
+            <div className=" text-center items-center justify-center">
+              <span>Trading</span>
+              <button className='ml-2 bg-transparent border-none top-2 right-6 absolute' onClick={endTrade}>
+                <span className='text-red-400 text-5xl'>&times;</span>
+              </button>
+            </div>
+            <div className="flex items-center justify-start w-full h-5/6 mt-8">
+              <div className="border-2 border-black w-1/2 h-full p-4">
+                <div className="">
+                  {items.map(item => <TradeableItem key={item.id} data={item} tradeItem={addItemToTrade}/>)}
+
+                </div>
+              </div>
+              
+              <div className="border-2 border-black w-1/2 h-full p-4">
+                <div>
+                  {itemsToTrade.map(item => <TradeableItem key={item.id} data={item} updateData={updateItemToTrade} removeItem={removeItemToTrade}/>)}
+
+                </div>
+              </div>
+            </div>
+            <div className="flext justify-center items-center">
+              <button onClick={sendTrade}>Confirm</button>
+            </div>
+            
+          </div>
+          :
+          <></>
+      }
+      
+      {/* flex-col lg:flex-row */}
+      <div className="flex flex-wrap justify-around flex-1 ">
+        
+        
+        <div className="flex-1 min-w-[600px]" >
+          <div className="borderBox flex-col  m-4 mt-8">
+            <div className=" flex items-center justify-evenly ">
+              <div className="flex-col items-center ">
+                <h1 className="text-center ">{name}</h1>
+                <Input onSubmit={setName} buttonClass="w-2/6" buttonText="Change"></Input>
+              </div>
+              <div className="flex">
+                <StatBox value={lvl} heading="LVL" updateValue={setLvl}/>
+                <StatBox value={hp} heading="HP" updateValue={setHp}/>
+                <StatBox value={init} heading="INIT" updateValue={setInit}/>
+              </div>
+            </div>
+
+            <div className=" m-4 mt-8 flex justify-evenly">
                 <StatBox value={10} heading="STR" />
                 <StatBox value={10} heading="DEX" />
                 <StatBox value={10} heading="CON" />
@@ -231,181 +347,186 @@ export default function Home() {
                 <StatBox value={10} heading="WIS" />
                 <StatBox value={10} heading="CHA" />
             </div>
-          </div>
 
-          <div className="flex items-center mx-4 mt-12 justify-evenly">
+            <div className="flex items-center mx-4 mt-12 justify-around">
 
-            <button className="submitButton " onClick={createParty} disabled={inParty}> 
-              <p className="mx-4">Create Party</p>
-            </button>
+              <button className="submitButton " onClick={createParty} disabled={inParty}> 
+                <p className="mx-4">Create Party</p>
+              </button>
 
-            <div className="w-1/2">
-              <Input onSubmit={joinParty} buttonText="Join Party" disabled={inParty} inputClass="w-1/2 mx-2" buttonClass="w-1/3"></Input>
-            </div>
+              <Input onSubmit={joinParty} buttonText="Join Party" disabled={inParty} inputClass="w-1/2 mx-2"></Input>  {/*buttonClass="w-1/4"*/}
+              {/* <div className="w-1/2">
+                <Input onSubmit={joinParty} buttonText="Join Party" disabled={inParty} inputClass="w-1/2 mx-2" buttonClass="w-1/3"></Input>
+              </div> */}
 
-            <p className="text-white text-center">
-              {
-                partyJoinError ? partyJoinError : ''
-              }
-            </p>
-
-          </div>
-
-        </div>
-
-        <div className="borderBox mx-4 my-4">
-          <div className="flex justify-center">
-            <h1>
-              Inventory
-            </h1>
-          </div>
-          <div className="flex justify-center space-x-2 mb-2 rounded-lg  bg-slate-100 w-full py-2">
-            <div className="w-1/2">
-              <Input onSubmit={addItem} buttonText="Add"></Input>
-            </div>
-            
-          </div>
-          
-          <DndContext 
-            collisionDetection={closestCenter} 
-            onDragEnd={handleDragEnd} 
-            //onDragStart={handleDragStart}
-            modifiers={[restrictToParentElement]}>
-              
-            <ul>
-              <SortableContext
-                items={items}
-                strategy={verticalListSortingStrategy}>
-                {items.map(item => <SortableItem key={item.id} data={item} updateData={updateItem} removeItem={removeItem}/>)}
-              </SortableContext>
-
-            </ul>
-            
-          </DndContext>
-
-        </div>
-
-        <br/> <br/>
-
-        
-        <div className="mx-4 w-1/2 items-center">
-          
-        </div>
-        
-        <br/> <br/>
-
-        <button className="submitButton" onClick={debugValue}> 
-          <p className="mx-4">DEBUG</p>
-        </button>
-
-      </div>
-      <div className="borderBox mx-4 mt-8 w-1/3 ">
-        <div className="flex justify-center">
-          <h1>
-            Statuses
-          </h1>
-        </div>
-        
-        {/* Display currently applied statuses */}
-        <div className="grid grid-cols-5">
-            {
-              statuses.map((status, i) => { 
-                let key = status.status as keyof typeof statusVisuals
-                let options = "options" in statusVisuals[key] ? statusVisuals[key]["options"] : undefined
-                return <StatusBox key={i} id={status.id} statusName={status.status} optionChanged={changeStatusOption} removeStatus={removeStatus} selectedOption={status.option} options={options}/>
-              })
-            }
-        </div>
-        <br/> <br/>
-        <button className="submitButton" onClick={toggleStatusMenu}>Add Status</button>
-        {
-            showStatusMenu ?
-
-            <div className='ml-6 mr-4 my-2 grid grid-cols-5'>
-  
-              {/* Check which statuses are not applied, the display those as selectable*/}
-              
-              {Object.keys(statusVisuals).reduce((unusedStatuses: any[], statusKey:string, i) => {
-                let key = statusKey as keyof typeof statusVisuals
-                let id = uuidv4();
-                let exists = statuses.findIndex((status) => status.status === statusKey);
-
-                // always show statuses that have options so they can be added multiple times
-                if(!(exists > 0) || statusVisuals[key].options.length > 0) {
-                  
-                  let initialOption = statusVisuals[key].options[0]
-                  unusedStatuses.push(
-                  <button key={i} onClick={()=>addStatus(id, statusKey, initialOption)}>
-                    <StatusBox id={id} statusName={statusKey}/>
-                  </button>
-
-                  )
+              <p className="text-white text-center">
+                {
+                  partyJoinError ? partyJoinError : ''
                 }
-                return unusedStatuses
-
-              }, [])}
+              </p>
 
             </div>
 
-            :
-
-            <div></div>
-        }
-      
-      </div>
-      
-      <div className="w-1/3">
-        <div className="borderBox m-4 mt-8 w-6/7">
-          
-          <div className="flex justify-center">
-            <h1>
-              Party Info
-            </h1>
           </div>
 
-          <div className="flex justify-center">
-            {
-              partyId ? 
-                  <div className="flex items-center">
-                    <span className="inline-flex items-center py-2.5 px-4 text-center text-lg font-bold">Party ID:</span>
-                    <input id="PartyID" value={partyId} className="border-none bg-transparent w-1/3 " readOnly disabled></input> 
-                    <button onClick={() => {navigator.clipboard.writeText(partyId)}} className="submitButton">
-                      <span id="default-message">Copy</span>
-                    </button>
-
-                  </div>
-              :
-                <h2>
-                  Party not joined
-                </h2>
-            }
-          </div>
-
-          <DndContext 
-            collisionDetection={closestCenter} 
-            // onDragEnd={handleDragEndParty} 
-            //onDragStart={handleDragStart}
-            modifiers={[restrictToParentElement]}>
+          <div className="borderBox mx-4 my-4">
+            <div className="flex justify-center ">
+              <h1>
+                Inventory
+              </h1>
+            </div>
+            <div className="flex justify-center space-x-2 mb-2 rounded-lg  bg-slate-100 w-full py-2">
+              <div className="w-1/2">
+                <Input onSubmit={addItem} buttonText="Add"></Input>
+              </div>
+              
+            </div>
             
-            <ul>
-              <SortableContext
-                items={partyMembers}
-                strategy={verticalListSortingStrategy}>
-                {partyMembers.map(member => <PartyMemberInfo key={member.id} data={member} />)}
-              </SortableContext>
+            <DndContext 
+              collisionDetection={closestCenter} 
+              onDragEnd={handleDragEnd} 
+              //onDragStart={handleDragStart}
+              modifiers={[restrictToParentElement]}>
+                
+              <ul>
+                <SortableContext
+                  items={items}
+                  strategy={verticalListSortingStrategy}>
+                  {items.map(item => <SortableItem key={item.id} data={item} updateData={updateItem} removeItem={removeItem}/>)}
+                </SortableContext>
 
-            </ul>            
-          </DndContext>
-          {
-            partyId && isHost ? 
-              <EventEmitterBtn socket={socket} emitMessage={"roll-initiative-auto"} btnText={"Roll Initiative (automatic)"}/>
-            :
-              <div></div>
-          }
+              </ul>
+              
+            </DndContext>
+
+          </div>
+
+          <br/> <br/>
+
+          
+          <div className="mx-4 w-1/2 items-center">
+            
+          </div>
+          
+          <br/> <br/>
+
+          <button className="submitButton" onClick={debugValue}> 
+            <p className="mx-4">DEBUG</p>
+          </button>
 
         </div>
-      </div>
 
+        <div className="flex-1 min-w-[500px]">
+          <div className="borderBox mx-4 mt-8  ">
+            <div className="flex justify-center">
+              <h1>
+                Statuses
+              </h1>
+            </div>
+            
+            {/* Display currently applied statuses */}
+            <div className="flex flex-wrap gap-2">
+                {
+                  statuses.map((status, i) => { 
+                    let key = status.status as keyof typeof statusVisuals
+                    let options = "options" in statusVisuals[key] ? statusVisuals[key]["options"] : undefined
+                    return <StatusBox key={i} id={status.id} statusName={status.status} optionChanged={changeStatusOption} removeStatus={removeStatus} selectedOption={status.option} options={options}/>
+                  })
+                }
+            </div>
+            <br/> <br/>
+            <button className="submitButton" onClick={toggleStatusMenu}>Add Status</button>
+            {
+                showStatusMenu ?
+                // ml-6 mr-4 my-2 grid auto-cols-min grid-cols-3 lg:grid-cols-4 xl:grid-cols-5
+                <div className='flex flex-wrap gap-2'> 
+      
+                  {/* Check which statuses are not applied, the display those as selectable*/}
+                  
+                  {Object.keys(statusVisuals).reduce((unusedStatuses: any[], statusKey:string, i) => {
+                    let key = statusKey as keyof typeof statusVisuals
+                    let id = uuidv4();
+                    let exists = statuses.findIndex((status) => status.status === statusKey);
+
+                    // always show statuses that have options so they can be added multiple times
+                    if(!(exists > 0) || statusVisuals[key].options.length > 0) {
+                      
+                      let initialOption = statusVisuals[key].options[0]
+                      unusedStatuses.push(
+                      <button key={i} onClick={()=>addStatus(id, statusKey, initialOption)}>
+                        <StatusBox id={id} statusName={statusKey}/>
+                      </button>
+
+                      )
+                    }
+                    return unusedStatuses
+
+                  }, [])}
+
+                </div>
+
+                :
+
+                <div></div>
+            }
+          
+          </div>
+        </div>
+        
+        
+        <div className="flex-1 min-w-[500px]">
+          <div className="borderBox m-4 mt-8 w-6/7">
+            
+            <div className="flex justify-center">
+              <h1>
+                Party Info
+              </h1>
+            </div>
+
+            <div className="flex justify-center">
+              {
+                partyId ? 
+                    <div className="flex items-center">
+                      <span className="inline-flex items-center py-2.5 px-4 text-center text-lg font-bold">Party ID:</span>
+                      <input id="PartyID" value={partyId} className="border-none bg-transparent w-1/3 " readOnly disabled></input> 
+                      <button onClick={() => {navigator.clipboard.writeText(partyId)}} className="submitButton">
+                        <span id="default-message">Copy</span>
+                      </button>
+
+                    </div>
+                :
+                  <h2>
+                    Party not joined
+                  </h2>
+              }
+            </div>
+
+            <DndContext 
+              collisionDetection={closestCenter} 
+              // onDragEnd={handleDragEndParty} 
+              //onDragStart={handleDragStart}
+              modifiers={[restrictToParentElement]}>
+              
+              <ul>
+                <SortableContext
+                  items={partyMembers}
+                  strategy={verticalListSortingStrategy}>
+                  {partyMembers.map(member => <PartyMemberInfo key={member.id} data={member} clientID={socket.id} handleTrade={startTrade}/>)}
+                </SortableContext>
+
+              </ul>            
+            </DndContext>
+            {
+              partyId && isHost ? 
+                <EventEmitterBtn socket={socket} emitMessage={"roll-initiative-auto"} btnText={"Roll Initiative (automatic)"}/>
+              :
+                <div></div>
+            }
+
+          </div>
+        </div>
+
+      </div>
     </div>
    
   );

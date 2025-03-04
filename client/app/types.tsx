@@ -2,6 +2,8 @@ export interface InventoryItem  {
     id: string;
     name: string;
     description?: string;
+    quantity: number
+    amountToTrade: number
 }
 
 export interface Status {
@@ -15,5 +17,5 @@ export interface PartyMember {
     name: string;
     hp: number;
     init: number;
-    statuses: string[];
+    statuses: Status[];
 }

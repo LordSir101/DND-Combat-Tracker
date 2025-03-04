@@ -7,6 +7,8 @@ import { statusVisuals } from '../statusVisuals';
 
 type partyMemberInfoProps = {
     data: PartyMember
+    clientID: string | undefined
+    handleTrade: (id:string) => void
 }
 
 export function PartyMemberInfo(props: partyMemberInfoProps) {
@@ -31,6 +33,10 @@ export function PartyMemberInfo(props: partyMemberInfoProps) {
         setIsClicked(!isClicked)
     }
 
+    function handleTrade(e:any) {
+        props.handleTrade(props.data.id)
+    }
+
     return (
         <li className="my-0" ref={setNodeRef} style={style}>
             <div className="rounded-lg  bg-slate-100 w-full mb-2">
@@ -51,13 +57,22 @@ export function PartyMemberInfo(props: partyMemberInfoProps) {
                             d="M4 6h16M4 12h16M4 18h16"
                         />
                     </svg> */}
-                    <button className=" rounded-lg  bg-slate-100 mb-2 flex items-start w-full" onClick={handleClick}>
+                    <div className=" rounded-lg  bg-slate-100 mb-2 flex items-start w-full" onClick={handleClick}>
                         <div className='flex items-start mx-4'>
                             <p className="mx-4 my-4 font-bold">{props.data.name} </p>
                             <p className="mx-4  my-4 font-bold whitespace-pre">HP:  {props.data.hp}</p>
                         </div>
+                        {
+                            props.clientID != props.data.id ?
+                                <button className='submitButton' onClick={handleTrade}>
+                                Trade
+                                </button> 
+                            :
+                            <></>
+                        }
                        
-                        <div className='grid grid-cols-5 w-full'>
+                       {/* //grid grid-cols-5 */}
+                        <div className='flex flex-wrap gap-2  w-full'>
                             {
                                 props.data.statuses.map((status, i) => {
                                     return <StatusBox key={i} id={status.id} scale="scale-75" statusName={status.status} selectedOption={status.option} />
@@ -65,7 +80,7 @@ export function PartyMemberInfo(props: partyMemberInfoProps) {
                             }
                         </div>
                             
-                    </button>
+                    </div>
                    
                 </div>
            

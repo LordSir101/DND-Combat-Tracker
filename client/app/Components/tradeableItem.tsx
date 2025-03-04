@@ -5,11 +5,12 @@ import { useState } from 'react';
 
 type SortableItemProps = {
     data: InventoryItem;
-    updateData: (id:string, description: string | undefined, quantity: number) => void
-    removeItem: (id: string) => void
+    tradeItem?: (data:InventoryItem) => void
+    updateData?: (id:string, quantity: number) => void
+    removeItem?: (id: string) => void
 }
 
-export function SortableItem(props: SortableItemProps) {
+export function TradeableItem(props: SortableItemProps) {
     const {
         attributes,
         listeners,
@@ -28,29 +29,37 @@ export function SortableItem(props: SortableItemProps) {
 
     function handleClick()
     {
-        setIsClicked(!isClicked)
+        if(props.tradeItem) {
+            props.tradeItem(props.data)
+        }
+        
     }
 
     function handleRemove(e: any) {
-        props.removeItem(props.data.id)
+        if(props.removeItem) {
+            props.removeItem(props.data.id)
+        }
     }
 
-    function handleDescriptionChange(text:string)
-    {
-        props.data.description = text
-        props.updateData(props.data.id, props.data.description, props.data.quantity)
-    }
+    // function handleDescriptionChange(text:string)
+    // {
+    //     props.data.description = text
+    //     props.updateData(props.data.id, props.data.description, props.data.quantity)
+    // }
 
-    function handleQuantityChange(number:string) {
-        props.data.quantity = Number(number)
-        props.updateData(props.data.id, props.data.description, props.data.quantity)
+    function handleQuantityChange(e:any) {
+        props.data.amountToTrade= Number(e.target.value)
+
+        if(props.updateData) {
+            props.updateData(props.data.id, props.data.amountToTrade)
+        }   
     }
 
     return (
-        <li className="my-0" ref={setNodeRef} style={style}>
+        
             <div className="rounded-lg  bg-slate-100 w-full mb-2">
                 <div className='flex items-center'>
-                    <svg
+                    {/* <svg
                         {...listeners}
                         {...attributes}
                         xmlns="http://www.w3.org/2000/svg"
@@ -65,19 +74,36 @@ export function SortableItem(props: SortableItemProps) {
                             strokeWidth="2"
                             d="M4 6h16M4 12h16M4 18h16"
                         />
-                    </svg>
-                    <button className='ml-2 bg-transparent border-none' onClick={handleRemove}>
-                        <span className='text-gray-400 text-2xl'>&times;</span>
-                    </button>
+                    </svg> */}
+                     {
+                            !props.tradeItem ?
+                                <button className='ml-2 bg-transparent border-none' onClick={handleRemove}>
+                                    <span className='text-gray-400 text-2xl'>&times;</span>
+                                </button>
+                            :
+                            <></>
+                     }
+                    
                     <button className=" rounded-lg  bg-slate-100 w-4/5 mb-2" onClick={handleClick}>
                         
                             <p className="mx-4 text-lg">{props.data.name}</p>
                     </button>
-                    <div className='flex justify-end w-1/6'>
-                        <input  className=" pl-1 mx-4 border-2 border-black rounded-lg w-full "  value={props.data.quantity} type="number" step="1" max="9999" onChange={(e) =>handleQuantityChange(e.target.value)}/>
+                    <div className='flex justify-center items-start w-1/3'>
+                        {
+                            !props.tradeItem ?
+                            <div>
+                                <input  className="z-50 pl-1 mx-2 border-2 border-black rounded-lg w-1/2" defaultValue="1" type="number" step="1" min="0" max={props.data.quantity} onChange={handleQuantityChange}/>
+                                <span className='whitespace-pre'> / </span>
+                            </div>
+                            
+                            :
+                            <></>
+                        }
+                        
+                        <span>{props.data.quantity}</span>
                     </div>
                 </div>
-                {
+                {/* {
                     isClicked ?
                     <div className='ml-6 mr-4 my-2'>
                         <input type="text" defaultValue={props.data.description} className="border-black rounded-lg w-full p-2" onChange={(e) => handleDescriptionChange(e.target.value)}/>
@@ -86,13 +112,10 @@ export function SortableItem(props: SortableItemProps) {
                     :
 
                     <div></div>
-                }
+                } */}
            
             </div>
            
-            
-            
-        </li>
     )
 
 }
