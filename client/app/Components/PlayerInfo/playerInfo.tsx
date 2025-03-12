@@ -3,6 +3,7 @@ import { Input } from "../input"
 import { StatBox } from "../statBox"
 import { Status } from "@/app/types"
 import { useEffect, useState } from "react"
+import { getLocalData } from "@/app/utils"
 
 type playerInfo = {
     socket: Socket
@@ -14,23 +15,6 @@ export function PlayerInfo(props: playerInfo) {
     const [lvl, setLvl] = useState(1)
     const [init, setInit] = useState(getLocalData("init") || 0)
     const [name, setName] = useState(getLocalData("name") ||'Player')
-
-    function getLocalData(key:string) {
-        // let data = localStorage.getItem("playerData")
-        // if(data){
-        //   let dataObj = JSON.parse(data)
-    
-        //   // setHp(dataObj.hp)
-        //   // setName(dataObj.name)
-        //   // setInit(dataObj.init)
-        //   // setStatuses([...dataObj.statuses])
-        //   // setItems([...dataObj.items])
-        //   return dataObj[key]
-        // }
-    
-        return null
-        
-    }
 
     function changeName(name:string) {
         setName(name)

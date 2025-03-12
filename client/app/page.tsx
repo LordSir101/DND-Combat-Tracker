@@ -12,12 +12,13 @@ import { Input } from "./Components/input";
 import { InventoryItem, PartyMember, Status } from "./types";
 import { io } from "socket.io-client";
 import { EventEmitterBtn } from "./Components/rollInitiativeBtn";
-import { StatusBox } from "./Components/statusBox";
-import { statusVisuals } from "./statusVisuals";
+// import { StatusBox } from "./Components/statusBox";
+// import { statusVisuals } from "./statusVisuals";
 
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 import { TradeableItem } from "./Components/tradeableItem";
 import { PlayerInfo } from "./Components/PlayerInfo/playerInfo";
+import { PlayerStatuses } from "./Components/PlayerInfo/playerStatuses";
 
 const socket = io('http://localhost:3001')
 
@@ -25,7 +26,7 @@ export default function Home() {
   const [items, setItems] = useState<InventoryItem[]>(getLocalData("items") || [])
   const [itemsToTrade, setItemsToTrade] = useState<InventoryItem[]>([])
   // const [statuses, setStatuses] = useState<string[]>([])
-  const [statuses, setStatuses] = useState<Status[]>(getLocalData("statuses") ||[])
+  // const [statuses, setStatuses] = useState<Status[]>(getLocalData("statuses") ||[])
   const [partyMembers, setPartyMembers] = useState<PartyMember[]>([])
   const [partyJoinError, setPartyJoinError] = useState<string | null>(null)
 
@@ -33,7 +34,7 @@ export default function Home() {
   // const [lvl, setLvl] = useState(1)
   // const [init, setInit] = useState(getLocalData("init") || 0)
   // const [name, setName] = useState(getLocalData("name") ||'Player')
-  const [showStatusMenu, setShowStatusMenu] = useState(false)
+  // const [showStatusMenu, setShowStatusMenu] = useState(false)
   const [inParty, setInparty] = useState(false)
   const [isHost, setIsHost] = useState(false)
   const [partyId, setPartyId] = useState<string| undefined> (undefined)
@@ -162,30 +163,30 @@ export default function Home() {
     })
   }
 
-  const addStatus = (id:string, status: string, option: string) => {
-    setStatuses([...statuses, {id, status, option}])
-  }
+  // const addStatus = (id:string, status: string, option: string) => {
+  //   setStatuses([...statuses, {id, status, option}])
+  // }
 
-  // remove status from applied statuses
-  const removeStatus = (id:string) => {
-    let index = statuses.findIndex((status) => status.id === id);
-    let newStatuses = statuses
-    newStatuses.splice(index, 1)
-    setStatuses([...newStatuses])
-  }
+  // // remove status from applied statuses
+  // const removeStatus = (id:string) => {
+  //   let index = statuses.findIndex((status) => status.id === id);
+  //   let newStatuses = statuses
+  //   newStatuses.splice(index, 1)
+  //   setStatuses([...newStatuses])
+  // }
 
-  // update the option selected on statuses with options
-  const changeStatusOption = (id:string, option:string) => {
-    let index = statuses.findIndex((status) => status.id === id);
-    let newStatuses = statuses
-    console.log("chgange", option)
-    newStatuses[index].option = option
-    setStatuses([...newStatuses])
-  }
+  // // update the option selected on statuses with options
+  // const changeStatusOption = (id:string, option:string) => {
+  //   let index = statuses.findIndex((status) => status.id === id);
+  //   let newStatuses = statuses
+  //   console.log("chgange", option)
+  //   newStatuses[index].option = option
+  //   setStatuses([...newStatuses])
+  // }
 
-  const toggleStatusMenu = () => {
-    setShowStatusMenu(!showStatusMenu)
-  }
+  // const toggleStatusMenu = () => {
+  //   setShowStatusMenu(!showStatusMenu)
+  // }
 
   const addPartyMember = (data: PartyMember) => {
     console.log(data)
@@ -439,14 +440,15 @@ export default function Home() {
         </div>
 
         <div className="flex-1 min-w-[500px]">
-          <div className="borderBox mx-4 mt-8  ">
+          <PlayerStatuses socket={socket} updateData={updatePlayerData}></PlayerStatuses>
+          {/* <div className="borderBox mx-4 mt-8  ">
             <div className="flex justify-center">
               <h1>
                 Statuses
               </h1>
             </div>
             
-            {/* Display currently applied statuses */}
+            
             <div className="flex flex-wrap gap-2">
                 {
                   statuses.map((status, i) => { 
@@ -463,7 +465,7 @@ export default function Home() {
                 // ml-6 mr-4 my-2 grid auto-cols-min grid-cols-3 lg:grid-cols-4 xl:grid-cols-5
                 <div className='flex flex-wrap gap-2'> 
       
-                  {/* Check which statuses are not applied, the display those as selectable*/}
+                  
                   
                   {Object.keys(statusVisuals).reduce((unusedStatuses: any[], statusKey:string, i) => {
                     let key = statusKey as keyof typeof statusVisuals
@@ -492,7 +494,7 @@ export default function Home() {
                 <div></div>
             }
           
-          </div>
+          </div> */}
         </div>
         
         
