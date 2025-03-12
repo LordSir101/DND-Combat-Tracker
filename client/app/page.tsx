@@ -6,12 +6,12 @@ import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/
 import { useEffect, useLayoutEffect, useState } from "react";
 
 import { SortableItem } from "./Components/sortableItem";
-import { PartyMemberInfo } from "./Components/partyMemberInfo";
+import { PartyMemberInfo } from "./Components/PartyInfo/partyMemberInfo";
 import {StatBox} from "./Components/statBox";
 import { Input } from "./Components/input";
 import { InventoryItem, PartyMember, Status } from "./types";
 import { io } from "socket.io-client";
-import { EventEmitterBtn } from "./Components/rollInitiativeBtn";
+// import { EventEmitterBtn } from "./Components/eventEmitterBtn";
 // import { StatusBox } from "./Components/statusBox";
 // import { statusVisuals } from "./statusVisuals";
 
@@ -19,6 +19,7 @@ import { EventEmitterBtn } from "./Components/rollInitiativeBtn";
 import { TradeableItem } from "./Components/tradeableItem";
 import { PlayerInfo } from "./Components/PlayerInfo/playerInfo";
 import { PlayerStatuses } from "./Components/PlayerInfo/playerStatuses";
+import { PartyInfo } from "./Components/PartyInfo/partyInfo";
 
 const socket = io('http://localhost:3001')
 
@@ -27,7 +28,7 @@ export default function Home() {
   const [itemsToTrade, setItemsToTrade] = useState<InventoryItem[]>([])
   // const [statuses, setStatuses] = useState<string[]>([])
   // const [statuses, setStatuses] = useState<Status[]>(getLocalData("statuses") ||[])
-  const [partyMembers, setPartyMembers] = useState<PartyMember[]>([])
+  // const [partyMembers, setPartyMembers] = useState<PartyMember[]>([])
   const [partyJoinError, setPartyJoinError] = useState<string | null>(null)
 
   // const [hp, setHp] = useState(getLocalData("hp") ||10)
@@ -38,6 +39,7 @@ export default function Home() {
   const [inParty, setInparty] = useState(false)
   const [isHost, setIsHost] = useState(false)
   const [partyId, setPartyId] = useState<string| undefined> (undefined)
+  // const [partyId, setPartyId] = useState<string| undefined> (undefined)
 
   const [isTrading, setIsTrading] = useState(false)
   const [tradingPartnerID, settradingPartnerID,] = useState<string| undefined> (undefined)
@@ -50,6 +52,14 @@ export default function Home() {
     statuses: [],
     socketId: socket.id
   })
+
+  useEffect(() => {
+    console.log("begin" , socket.id)
+    if(socket.id) {
+      updatePlayerData('id', socket.id)
+    }
+    
+  }, [socket.id])
 
   const updatePlayerData = (property:string, value: string | number | Status[]) => {
     let oldData: PartyMember = playerData
@@ -188,17 +198,17 @@ export default function Home() {
   //   setShowStatusMenu(!showStatusMenu)
   // }
 
-  const addPartyMember = (data: PartyMember) => {
-    console.log(data)
-    setPartyMembers(partyMembers => [...partyMembers, data])
-  }
+  // const addPartyMember = (data: PartyMember) => {
+  //   console.log(data)
+  //   setPartyMembers(partyMembers => [...partyMembers, data])
+  // }
 
-  const updateMemberData = (memberData: PartyMember) => {
-    let indexOfMember = getMemberPos(partyMembers, memberData.id)
-    let newMemberData = partyMembers
-    newMemberData[indexOfMember] = memberData
-    setPartyMembers([...newMemberData])
-  }
+  // const updateMemberData = (memberData: PartyMember) => {
+  //   let indexOfMember = getMemberPos(partyMembers, memberData.id)
+  //   let newMemberData = partyMembers
+  //   newMemberData[indexOfMember] = memberData
+  //   setPartyMembers([...newMemberData])
+  // }
 
 
   function createParty() {
@@ -207,6 +217,7 @@ export default function Home() {
   }
 
   function joinParty(idOfParty: string) {
+    console.log("client id", playerData.id)
     socket.emit('join-party',idOfParty, playerData, showParty)
     setIsHost(false)
   }
@@ -248,37 +259,37 @@ export default function Home() {
   //     getLocalData();
   //   }, []);
 
-  useEffect(() => {
-    socket.on('add-player-to-party', (data) => {
-      addPartyMember(data)
-    })
+  // useEffect(() => {
+  //   socket.on('add-player-to-party', (data) => {
+  //     addPartyMember(data)
+  //   })
 
-    socket.on('recive-party-data', (partyData) => {
-      let temp = []
+  //   socket.on('recive-party-data', (partyData) => {
+  //     let temp = []
 
-      for (let key in partyData) {
-        temp.push(partyData[key])
-      }
+  //     for (let key in partyData) {
+  //       temp.push(partyData[key])
+  //     }
 
-      setPartyMembers(temp)
-    })
+  //     setPartyMembers(temp)
+  //   })
 
-    socket.on('update-party-member-data', (memberData) => {
-      updateMemberData(memberData)
-    })
+  //   socket.on('update-party-member-data', (memberData) => {
+  //     updateMemberData(memberData)
+  //   })
 
-    socket.on('update-party-order', (memberDataArr) => {
-      console.log(memberDataArr)
-      setPartyMembers([...memberDataArr])
-    })
+  //   socket.on('update-party-order', (memberDataArr) => {
+  //     console.log(memberDataArr)
+  //     setPartyMembers([...memberDataArr])
+  //   })
 
-    return () => {
-      socket.off('add-player-to-party')
-      socket.off('recive-party-data')
-      socket.off('update-party-member-data')
-      socket.off('update-party-order')
-    }
-  }, [partyMembers]) //partyMembers
+  //   return () => {
+  //     socket.off('add-player-to-party')
+  //     socket.off('recive-party-data')
+  //     socket.off('update-party-member-data')
+  //     socket.off('update-party-order')
+  //   }
+  // }, [partyMembers]) //partyMembers
 
   
   function debugValue() {
@@ -499,7 +510,8 @@ export default function Home() {
         
         
         <div className="flex-1 min-w-[500px]">
-          <div className="borderBox m-4 mt-8 w-6/7">
+          <PartyInfo socket={socket} isHost={isHost} partyId={partyId} startTrade={startTrade} ></PartyInfo>
+          {/* <div className="borderBox m-4 mt-8 w-6/7">
             
             <div className="flex justify-center">
               <h1>
@@ -547,7 +559,7 @@ export default function Home() {
                 <div></div>
             }
 
-          </div>
+          </div> */}
         </div>
 
       </div>
@@ -578,7 +590,7 @@ const getItemPos = (items: InventoryItem[], id: string) => {
   return items.findIndex((item) => item.id === id);
 }
 
-const getMemberPos = (items: PartyMember[], id: string) => {
-  return items.findIndex((item) => item.id === id);
-}
+// const getMemberPos = (items: PartyMember[], id: string) => {
+//   return items.findIndex((item) => item.id === id);
+// }
   

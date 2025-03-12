@@ -75,6 +75,7 @@ export class Party {
     }
 
     emitDataToAll(event, data) {
+        console.log("data id emitted" , data.id)
         for(let member of this.members) {
             member.emit(event, data)
         }
