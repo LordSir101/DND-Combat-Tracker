@@ -17,6 +17,7 @@ import { statusVisuals } from "./statusVisuals";
 
 import { v4 as uuidv4 } from 'uuid';
 import { TradeableItem } from "./Components/tradeableItem";
+import { PlayerInfo } from "./Components/PlayerInfo/playerInfo";
 
 const socket = io('http://localhost:3001')
 
@@ -28,10 +29,10 @@ export default function Home() {
   const [partyMembers, setPartyMembers] = useState<PartyMember[]>([])
   const [partyJoinError, setPartyJoinError] = useState<string | null>(null)
 
-  const [hp, setHp] = useState(getLocalData("hp") ||10)
-  const [lvl, setLvl] = useState(1)
-  const [init, setInit] = useState(getLocalData("init") || 0)
-  const [name, setName] = useState(getLocalData("name") ||'Player')
+  // const [hp, setHp] = useState(getLocalData("hp") ||10)
+  // const [lvl, setLvl] = useState(1)
+  // const [init, setInit] = useState(getLocalData("init") || 0)
+  // const [name, setName] = useState(getLocalData("name") ||'Player')
   const [showStatusMenu, setShowStatusMenu] = useState(false)
   const [inParty, setInparty] = useState(false)
   const [isHost, setIsHost] = useState(false)
@@ -40,21 +41,41 @@ export default function Home() {
   const [isTrading, setIsTrading] = useState(false)
   const [tradingPartnerID, settradingPartnerID,] = useState<string| undefined> (undefined)
 
-  let playerData = {
-    name,
-    hp,
-    init,
-    statuses,
-    id: socket.id
+  const [playerData, setPlayerData] = useState<PartyMember>({
+    id: '',
+    name: '',
+    hp: 0,
+    init: 0,
+    statuses: [],
+    socketId: socket.id
+  })
+
+  const updatePlayerData = (property:string, value: string | number | Status[]) => {
+    let oldData: PartyMember = playerData
+    let updatedData = {[property]: value}
+    const newData = Object.assign(oldData, updatedData)
+    setPlayerData(newData)
+    socket.emit("update-player-data", newData)
+    // const key = property as keyof PartyMember
+    // let propertyType = typeof newData[key]
+    // newData[key] = value
   }
 
-  let localData = {
-    name,
-    hp,
-    init,
-    statuses,
-    items
-  }
+  // let playerData = {
+  //   name,
+  //   hp,
+  //   init,
+  //   statuses,
+  //   id: socket.id
+  // }
+
+  // let localData = {
+  //   name,
+  //   hp,
+  //   init,
+  //   statuses,
+  //   items
+  // }
 
   const addItem = (name: string, itemText?: string, amount?: number) => {
     let id = name//(items.length + 1).toString()
@@ -168,7 +189,7 @@ export default function Home() {
 
   const addPartyMember = (data: PartyMember) => {
     console.log(data)
-    setPartyMembers([...partyMembers, data])
+    setPartyMembers(partyMembers => [...partyMembers, data])
   }
 
   const updateMemberData = (memberData: PartyMember) => {
@@ -256,7 +277,7 @@ export default function Home() {
       socket.off('update-party-member-data')
       socket.off('update-party-order')
     }
-  }, [partyMembers])
+  }, [partyMembers]) //partyMembers
 
   
   function debugValue() {
@@ -264,11 +285,11 @@ export default function Home() {
   }
 
   // send player data to party whenever any of the relevant stats change
-  useEffect(() => {
-    socket.emit("update-player-data", playerData)
-    //saveLocalData(localData)
+  // useEffect(() => {
+  //   socket.emit("update-player-data", playerData)
+  //   //saveLocalData(localData)
 
-  }, [hp, name, init, statuses])
+  // }, [hp, name, init, statuses])
 
   useEffect(() => {
     //saveLocalData(localData)
@@ -327,7 +348,7 @@ export default function Home() {
         
         <div className="flex-1 min-w-[600px]" >
           <div className="borderBox flex-col  m-4 mt-8">
-            <div className=" flex items-center justify-evenly ">
+            {/* <div className=" flex items-center justify-evenly ">
               <div className="flex-col items-center ">
                 <h1 className="text-center ">{name}</h1>
                 <Input onSubmit={setName} buttonClass="w-2/6" buttonText="Change"></Input>
@@ -337,7 +358,8 @@ export default function Home() {
                 <StatBox value={hp} heading="HP" updateValue={setHp}/>
                 <StatBox value={init} heading="INIT" updateValue={setInit}/>
               </div>
-            </div>
+            </div> */}
+            <PlayerInfo socket={socket} updateData={updatePlayerData}></PlayerInfo>
 
             <div className=" m-4 mt-8 flex justify-evenly">
                 <StatBox value={10} heading="STR" />

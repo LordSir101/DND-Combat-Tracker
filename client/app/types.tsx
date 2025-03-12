@@ -18,4 +18,5 @@ export interface PartyMember {
     hp: number;
     init: number;
     statuses: Status[];
+    socketId: string | undefined
 }
