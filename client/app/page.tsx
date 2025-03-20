@@ -6,17 +6,21 @@ import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/
 import { useEffect, useLayoutEffect, useState } from "react";
 
 import { SortableItem } from "./Components/sortableItem";
-import { PartyMemberInfo } from "./Components/partyMemberInfo";
+import { PartyMemberInfo } from "./Components/PartyInfo/partyMemberInfo";
 import {StatBox} from "./Components/statBox";
 import { Input } from "./Components/input";
 import { InventoryItem, PartyMember, Status } from "./types";
 import { io } from "socket.io-client";
-import { EventEmitterBtn } from "./Components/rollInitiativeBtn";
-import { StatusBox } from "./Components/statusBox";
-import { statusVisuals } from "./statusVisuals";
+// import { EventEmitterBtn } from "./Components/eventEmitterBtn";
+// import { StatusBox } from "./Components/statusBox";
+// import { statusVisuals } from "./statusVisuals";
 
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 import { TradeableItem } from "./Components/tradeableItem";
+import { PlayerInfo } from "./Components/PlayerInfo/playerInfo";
+import { PlayerStatuses } from "./Components/PlayerInfo/playerStatuses";
+import { PartyInfo } from "./Components/PartyInfo/partyInfo";
+import { getLocalData } from "./utils";
 
 const socket = io('http://localhost:3001')
 
@@ -24,37 +28,66 @@ export default function Home() {
   const [items, setItems] = useState<InventoryItem[]>(getLocalData("items") || [])
   const [itemsToTrade, setItemsToTrade] = useState<InventoryItem[]>([])
   // const [statuses, setStatuses] = useState<string[]>([])
-  const [statuses, setStatuses] = useState<Status[]>(getLocalData("statuses") ||[])
-  const [partyMembers, setPartyMembers] = useState<PartyMember[]>([])
+  // const [statuses, setStatuses] = useState<Status[]>(getLocalData("statuses") ||[])
+  // const [partyMembers, setPartyMembers] = useState<PartyMember[]>([])
   const [partyJoinError, setPartyJoinError] = useState<string | null>(null)
 
-  const [hp, setHp] = useState(getLocalData("hp") ||10)
-  const [lvl, setLvl] = useState(1)
-  const [init, setInit] = useState(getLocalData("init") || 0)
-  const [name, setName] = useState(getLocalData("name") ||'Player')
-  const [showStatusMenu, setShowStatusMenu] = useState(false)
+  // const [hp, setHp] = useState(getLocalData("hp") ||10)
+  // const [lvl, setLvl] = useState(1)
+  // const [init, setInit] = useState(getLocalData("init") || 0)
+  // const [name, setName] = useState(getLocalData("name") ||'Player')
+  // const [showStatusMenu, setShowStatusMenu] = useState(false)
   const [inParty, setInparty] = useState(false)
   const [isHost, setIsHost] = useState(false)
   const [partyId, setPartyId] = useState<string| undefined> (undefined)
+  // const [partyId, setPartyId] = useState<string| undefined> (undefined)
 
   const [isTrading, setIsTrading] = useState(false)
   const [tradingPartnerID, settradingPartnerID,] = useState<string| undefined> (undefined)
 
-  let playerData = {
-    name,
-    hp,
-    init,
-    statuses,
-    id: socket.id
+  const [playerData, setPlayerData] = useState<PartyMember>({
+    id: '',
+    name: '',
+    hp: 0,
+    init: 0,
+    statuses: [],
+    socketId: socket.id
+  })
+
+  useEffect(() => {
+    console.log("begin" , socket.id)
+    if(socket.id) {
+      updatePlayerData('id', socket.id)
+    }
+    
+  }, [socket.id])
+
+  const updatePlayerData = (property:string, value: string | number | Status[]) => {
+    let oldData: PartyMember = playerData
+    let updatedData = {[property]: value}
+    const newData = Object.assign(oldData, updatedData)
+    setPlayerData(newData)
+    socket.emit("update-player-data", newData)
+    // const key = property as keyof PartyMember
+    // let propertyType = typeof newData[key]
+    // newData[key] = value
   }
 
-  let localData = {
-    name,
-    hp,
-    init,
-    statuses,
-    items
-  }
+  // let playerData = {
+  //   name,
+  //   hp,
+  //   init,
+  //   statuses,
+  //   id: socket.id
+  // }
+
+  // let localData = {
+  //   name,
+  //   hp,
+  //   init,
+  //   statuses,
+  //   items
+  // }
 
   const addItem = (name: string, itemText?: string, amount?: number) => {
     let id = name//(items.length + 1).toString()
@@ -141,42 +174,42 @@ export default function Home() {
     })
   }
 
-  const addStatus = (id:string, status: string, option: string) => {
-    setStatuses([...statuses, {id, status, option}])
-  }
+  // const addStatus = (id:string, status: string, option: string) => {
+  //   setStatuses([...statuses, {id, status, option}])
+  // }
 
-  // remove status from applied statuses
-  const removeStatus = (id:string) => {
-    let index = statuses.findIndex((status) => status.id === id);
-    let newStatuses = statuses
-    newStatuses.splice(index, 1)
-    setStatuses([...newStatuses])
-  }
+  // // remove status from applied statuses
+  // const removeStatus = (id:string) => {
+  //   let index = statuses.findIndex((status) => status.id === id);
+  //   let newStatuses = statuses
+  //   newStatuses.splice(index, 1)
+  //   setStatuses([...newStatuses])
+  // }
 
-  // update the option selected on statuses with options
-  const changeStatusOption = (id:string, option:string) => {
-    let index = statuses.findIndex((status) => status.id === id);
-    let newStatuses = statuses
-    console.log("chgange", option)
-    newStatuses[index].option = option
-    setStatuses([...newStatuses])
-  }
+  // // update the option selected on statuses with options
+  // const changeStatusOption = (id:string, option:string) => {
+  //   let index = statuses.findIndex((status) => status.id === id);
+  //   let newStatuses = statuses
+  //   console.log("chgange", option)
+  //   newStatuses[index].option = option
+  //   setStatuses([...newStatuses])
+  // }
 
-  const toggleStatusMenu = () => {
-    setShowStatusMenu(!showStatusMenu)
-  }
+  // const toggleStatusMenu = () => {
+  //   setShowStatusMenu(!showStatusMenu)
+  // }
 
-  const addPartyMember = (data: PartyMember) => {
-    console.log(data)
-    setPartyMembers([...partyMembers, data])
-  }
+  // const addPartyMember = (data: PartyMember) => {
+  //   console.log(data)
+  //   setPartyMembers(partyMembers => [...partyMembers, data])
+  // }
 
-  const updateMemberData = (memberData: PartyMember) => {
-    let indexOfMember = getMemberPos(partyMembers, memberData.id)
-    let newMemberData = partyMembers
-    newMemberData[indexOfMember] = memberData
-    setPartyMembers([...newMemberData])
-  }
+  // const updateMemberData = (memberData: PartyMember) => {
+  //   let indexOfMember = getMemberPos(partyMembers, memberData.id)
+  //   let newMemberData = partyMembers
+  //   newMemberData[indexOfMember] = memberData
+  //   setPartyMembers([...newMemberData])
+  // }
 
 
   function createParty() {
@@ -185,6 +218,7 @@ export default function Home() {
   }
 
   function joinParty(idOfParty: string) {
+    console.log("client id", playerData.id)
     socket.emit('join-party',idOfParty, playerData, showParty)
     setIsHost(false)
   }
@@ -204,59 +238,59 @@ export default function Home() {
     localStorage.setItem("playerData", JSON.stringify(data));
   }
 
-  function getLocalData(key:string) {
-    // let data = localStorage.getItem("playerData")
-    // if(data){
-    //   let dataObj = JSON.parse(data)
+  // function getLocalData(key:string) {
+  //   // let data = localStorage.getItem("playerData")
+  //   // if(data){
+  //   //   let dataObj = JSON.parse(data)
 
-    //   // setHp(dataObj.hp)
-    //   // setName(dataObj.name)
-    //   // setInit(dataObj.init)
-    //   // setStatuses([...dataObj.statuses])
-    //   // setItems([...dataObj.items])
-    //   return dataObj[key]
-    // }
+  //   //   // setHp(dataObj.hp)
+  //   //   // setName(dataObj.name)
+  //   //   // setInit(dataObj.init)
+  //   //   // setStatuses([...dataObj.statuses])
+  //   //   // setItems([...dataObj.items])
+  //   //   return dataObj[key]
+  //   // }
 
-    return null
+  //   return null
     
-  }
+  // }
 
 
   // useLayoutEffect(() => {
   //     getLocalData();
   //   }, []);
 
-  useEffect(() => {
-    socket.on('add-player-to-party', (data) => {
-      addPartyMember(data)
-    })
+  // useEffect(() => {
+  //   socket.on('add-player-to-party', (data) => {
+  //     addPartyMember(data)
+  //   })
 
-    socket.on('recive-party-data', (partyData) => {
-      let temp = []
+  //   socket.on('recive-party-data', (partyData) => {
+  //     let temp = []
 
-      for (let key in partyData) {
-        temp.push(partyData[key])
-      }
+  //     for (let key in partyData) {
+  //       temp.push(partyData[key])
+  //     }
 
-      setPartyMembers(temp)
-    })
+  //     setPartyMembers(temp)
+  //   })
 
-    socket.on('update-party-member-data', (memberData) => {
-      updateMemberData(memberData)
-    })
+  //   socket.on('update-party-member-data', (memberData) => {
+  //     updateMemberData(memberData)
+  //   })
 
-    socket.on('update-party-order', (memberDataArr) => {
-      console.log(memberDataArr)
-      setPartyMembers([...memberDataArr])
-    })
+  //   socket.on('update-party-order', (memberDataArr) => {
+  //     console.log(memberDataArr)
+  //     setPartyMembers([...memberDataArr])
+  //   })
 
-    return () => {
-      socket.off('add-player-to-party')
-      socket.off('recive-party-data')
-      socket.off('update-party-member-data')
-      socket.off('update-party-order')
-    }
-  }, [partyMembers])
+  //   return () => {
+  //     socket.off('add-player-to-party')
+  //     socket.off('recive-party-data')
+  //     socket.off('update-party-member-data')
+  //     socket.off('update-party-order')
+  //   }
+  // }, [partyMembers]) //partyMembers
 
   
   function debugValue() {
@@ -264,11 +298,11 @@ export default function Home() {
   }
 
   // send player data to party whenever any of the relevant stats change
-  useEffect(() => {
-    socket.emit("update-player-data", playerData)
-    //saveLocalData(localData)
+  // useEffect(() => {
+  //   socket.emit("update-player-data", playerData)
+  //   //saveLocalData(localData)
 
-  }, [hp, name, init, statuses])
+  // }, [hp, name, init, statuses])
 
   useEffect(() => {
     //saveLocalData(localData)
@@ -327,7 +361,7 @@ export default function Home() {
         
         <div className="flex-1 min-w-[600px]" >
           <div className="borderBox flex-col  m-4 mt-8">
-            <div className=" flex items-center justify-evenly ">
+            {/* <div className=" flex items-center justify-evenly ">
               <div className="flex-col items-center ">
                 <h1 className="text-center ">{name}</h1>
                 <Input onSubmit={setName} buttonClass="w-2/6" buttonText="Change"></Input>
@@ -337,7 +371,8 @@ export default function Home() {
                 <StatBox value={hp} heading="HP" updateValue={setHp}/>
                 <StatBox value={init} heading="INIT" updateValue={setInit}/>
               </div>
-            </div>
+            </div> */}
+            <PlayerInfo socket={socket} updateData={updatePlayerData}></PlayerInfo>
 
             <div className=" m-4 mt-8 flex justify-evenly">
                 <StatBox value={10} heading="STR" />
@@ -417,14 +452,15 @@ export default function Home() {
         </div>
 
         <div className="flex-1 min-w-[500px]">
-          <div className="borderBox mx-4 mt-8  ">
+          <PlayerStatuses socket={socket} updateData={updatePlayerData}></PlayerStatuses>
+          {/* <div className="borderBox mx-4 mt-8  ">
             <div className="flex justify-center">
               <h1>
                 Statuses
               </h1>
             </div>
             
-            {/* Display currently applied statuses */}
+            
             <div className="flex flex-wrap gap-2">
                 {
                   statuses.map((status, i) => { 
@@ -441,7 +477,7 @@ export default function Home() {
                 // ml-6 mr-4 my-2 grid auto-cols-min grid-cols-3 lg:grid-cols-4 xl:grid-cols-5
                 <div className='flex flex-wrap gap-2'> 
       
-                  {/* Check which statuses are not applied, the display those as selectable*/}
+                  
                   
                   {Object.keys(statusVisuals).reduce((unusedStatuses: any[], statusKey:string, i) => {
                     let key = statusKey as keyof typeof statusVisuals
@@ -470,12 +506,13 @@ export default function Home() {
                 <div></div>
             }
           
-          </div>
+          </div> */}
         </div>
         
         
         <div className="flex-1 min-w-[500px]">
-          <div className="borderBox m-4 mt-8 w-6/7">
+          <PartyInfo socket={socket} isHost={isHost} partyId={partyId} startTrade={startTrade} ></PartyInfo>
+          {/* <div className="borderBox m-4 mt-8 w-6/7">
             
             <div className="flex justify-center">
               <h1>
@@ -523,7 +560,7 @@ export default function Home() {
                 <div></div>
             }
 
-          </div>
+          </div> */}
         </div>
 
       </div>
@@ -554,7 +591,7 @@ const getItemPos = (items: InventoryItem[], id: string) => {
   return items.findIndex((item) => item.id === id);
 }
 
-const getMemberPos = (items: PartyMember[], id: string) => {
-  return items.findIndex((item) => item.id === id);
-}
+// const getMemberPos = (items: PartyMember[], id: string) => {
+//   return items.findIndex((item) => item.id === id);
+// }
   

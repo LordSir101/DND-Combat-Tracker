@@ -18,7 +18,7 @@
         "ts-node": "^10.9.2"
     },
     "devDependencies": {
-        "@types/node": "^18.11.9",
+        "@types/node": "^18.19.80",
         "tsx": "^4.19.2"
     }
 }

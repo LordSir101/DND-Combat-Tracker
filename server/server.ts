@@ -32,6 +32,8 @@ io.on('connection', (socket) => {
 
     if(party) {
       //let id = (Object.keys(this.partyInfo).length + 1).toString()
+      console.log("data socket id" , data.socketId)
+      console.log("socket id" ,socket.id)
       data.id = socket.id
       party.sendPlayerDataToParty(data)
       party.addPlayerToParty(data, socket)

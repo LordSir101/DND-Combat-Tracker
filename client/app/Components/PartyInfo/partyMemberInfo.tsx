@@ -1,9 +1,9 @@
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
-import { PartyMember } from '../types';
+import { PartyMember } from '../../types';
 import { useState } from 'react';
-import { StatusBox } from './statusBox';
-import { statusVisuals } from '../statusVisuals';
+import { StatusBox } from '../statusBox';
+import { statusVisuals } from '../../statusVisuals';
 
 type partyMemberInfoProps = {
     data: PartyMember
