@@ -20,6 +20,7 @@ import { TradeableItem } from "./Components/tradeableItem";
 import { PlayerInfo } from "./Components/PlayerInfo/playerInfo";
 import { PlayerStatuses } from "./Components/PlayerInfo/playerStatuses";
 import { PartyInfo } from "./Components/PartyInfo/partyInfo";
+import { getLocalData } from "./utils";
 
 const socket = io('http://localhost:3001')
 
@@ -237,22 +238,22 @@ export default function Home() {
     localStorage.setItem("playerData", JSON.stringify(data));
   }
 
-  function getLocalData(key:string) {
-    // let data = localStorage.getItem("playerData")
-    // if(data){
-    //   let dataObj = JSON.parse(data)
+  // function getLocalData(key:string) {
+  //   // let data = localStorage.getItem("playerData")
+  //   // if(data){
+  //   //   let dataObj = JSON.parse(data)
 
-    //   // setHp(dataObj.hp)
-    //   // setName(dataObj.name)
-    //   // setInit(dataObj.init)
-    //   // setStatuses([...dataObj.statuses])
-    //   // setItems([...dataObj.items])
-    //   return dataObj[key]
-    // }
+  //   //   // setHp(dataObj.hp)
+  //   //   // setName(dataObj.name)
+  //   //   // setInit(dataObj.init)
+  //   //   // setStatuses([...dataObj.statuses])
+  //   //   // setItems([...dataObj.items])
+  //   //   return dataObj[key]
+  //   // }
 
-    return null
+  //   return null
     
-  }
+  // }
 
 
   // useLayoutEffect(() => {
